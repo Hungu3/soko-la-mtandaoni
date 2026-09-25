@@ -1,0 +1,49 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+  <h1 style="margin:0;">Wasafirishaji</h1>
+  <div class="radio-group">
+    <a href="/admin/wasafirishaji?status=pending" class="btn btn-sm <%= filter==='pending' ? 'btn-accent':'btn-outline' %>">Zinazosubiri</a>
+    <a href="/admin/wasafirishaji?status=approved" class="btn btn-sm <%= filter==='approved' ? 'btn-accent':'btn-outline' %>">Zilizoidhinishwa</a>
+    <a href="/admin/wasafirishaji?status=suspended" class="btn btn-sm <%= filter==='suspended' ? 'btn-accent':'btn-outline' %>">Zilizosimamishwa</a>
+    <a href="/admin/wasafirishaji?status=all" class="btn btn-sm <%= filter==='all' ? 'btn-accent':'btn-outline' %>">Zote</a>
+  </div>
+</div>
+
+<% if (!wasafirishaji.length) { %>
+  <div class="empty"><div class="mark">&#128667;</div>Hakuna wasafirishaji kwenye kundi hili.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Jina</th><th>Aina ya Gari</th><th>Simu</th><th>Eneo</th><th>KYC</th><th>Kiwango</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% wasafirishaji.forEach(d => { %>
+      <tr>
+        <td class="strong"><%= d.jina %></td>
+        <td style="text-transform:capitalize;"><%= ainaGariJina(d.aina_gari) %></td>
+        <td><%= d.simu %></td>
+        <td><%= d.eneo_huduma || '—' %></td>
+        <td><span class="badge badge-<%= d.kyc_status === 'verified' ? 'approved' : 'pending' %>"><%= d.kyc_status || 'pending' %></span></td>
+        <td><span class="badge badge-<%= d.tier.toLowerCase() %>"><%= d.tier %></span></td>
+        <td><span class="badge badge-<%= d.status %>"><%= d.status %></span></td>
+        <td class="row-actions">
+          <% if (d.kitambulisho) { %><a href="/uploads/<%= d.kitambulisho %>" target="_blank" class="btn btn-ghost btn-sm">Kitambulisho</a><% } %>
+          <% if (isOwner) { %><form action="/admin/wasafirishaji/<%= d.id %>/kyc" method="POST"><input type="hidden" name="status" value="verified"><button class="btn btn-accent btn-sm">Verify KYC</button></form><% } %>
+          <% if (d.status === 'pending') { %>
+            <form action="/admin/wasafirishaji/<%= d.id %>/idhinisha" method="POST"><button class="btn btn-accent btn-sm">Idhinisha</button></form>
+            <form action="/admin/wasafirishaji/<%= d.id %>/kataa" method="POST"><button class="btn btn-danger btn-sm">Kataa</button></form>
+          <% } else if (d.status === 'approved') { %>
+            <form action="/admin/wasafirishaji/<%= d.id %>/simamisha" method="POST"><button class="btn btn-outline btn-sm">Simamisha</button></form>
+          <% } else if (d.status === 'suspended' || d.status === 'rejected') { %>
+            <form action="/admin/wasafirishaji/<%= d.id %>/rejesha" method="POST"><button class="btn btn-accent btn-sm">Rejesha</button></form>
+          <% } %>
+          <form action="/admin/wasafirishaji/<%= d.id %>/futa" method="POST" onsubmit="return confirm('Una uhakika?')"><button class="btn btn-danger btn-sm">Futa</button></form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

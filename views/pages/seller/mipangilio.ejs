@@ -1,0 +1,67 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<h1>Mipangilio ya Duka</h1>
+<p style="margin-bottom:24px;">Sasisha taarifa zinazoonekana kwa wanunuzi kwenye ukurasa wa duka lako.</p>
+
+<div class="form-card" style="max-width:640px;">
+  <form action="/duka-langu/mipangilio" method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label>Jina la Duka</label>
+      <input type="text" name="jina_duka" value="<%= currentSeller.jina_duka %>" required>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Aina ya Bidhaa</label>
+        <input type="text" name="aina_bidhaa" value="<%= currentSeller.aina_bidhaa %>" required>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" name="location" value="<%= currentSeller.location || '' %>">
+      </div>
+    </div>
+    <div class="field">
+      <label>Eneo la Duka kwenye Ramani</label>
+      <div id="rampaDuka" class="map-picker"></div>
+      <div class="map-hint">Bonyeza kwenye ramani kubadilisha eneo la duka lako.</div>
+      <input type="hidden" name="latitude" id="latitude" value="<%= currentSeller.latitude || '' %>">
+      <input type="hidden" name="longitude" id="longitude" value="<%= currentSeller.longitude || '' %>">
+    </div>
+    <div class="field">
+      <label>Barua Pepe</label>
+      <input type="email" name="email" value="<%= currentSeller.email || '' %>">
+    </div>
+    <div class="field">
+      <label>Maelezo ya Duka</label>
+      <textarea name="maelezo_duka"><%= currentSeller.maelezo_duka || '' %></textarea>
+    </div>
+    <div class="field">
+      <label>Siku na Muda wa Kufanya Biashara</label>
+      <input type="text" name="siku_kufunguliwa" value="<%= currentSeller.siku_kufunguliwa || '' %>">
+    </div>
+    <div class="field">
+      <label>Rangi ya Duka</label>
+      <select name="theme_color">
+        <option value="indigo" <%= currentSeller.theme_color === 'indigo' ? 'selected' : '' %>>Indigo</option>
+        <option value="emerald" <%= currentSeller.theme_color === 'emerald' ? 'selected' : '' %>>Emerald</option>
+        <option value="sunset" <%= currentSeller.theme_color === 'sunset' ? 'selected' : '' %>>Sunset</option>
+        <option value="ocean" <%= currentSeller.theme_color === 'ocean' ? 'selected' : '' %>>Ocean</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Picha ya Duka / Nembo</label>
+      <% if (currentSeller.picha_duka) { %><img src="/uploads/<%= currentSeller.picha_duka %>" style="width:80px; border-radius:6px; margin-bottom:8px;"><% } %>
+      <input type="file" name="picha_duka" accept="image/*">
+    </div>
+    <div class="field" style="background:var(--surface-2); padding:14px; border-radius:6px;">
+      <label style="margin-bottom:2px;">Namba ya Simu (haiwezi kubadilishwa hapa)</label>
+      <div style="color:var(--text-dim);"><%= currentSeller.simu %></div>
+    </div>
+    <button type="submit" class="btn btn-accent">Hifadhi Mabadiliko</button>
+  </form>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/public/js/map.js"></script>
+<script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude');</script>
+
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,8 @@
+<%- include('../../partials/dash-top-admin') %>
+<h1>Audit Logs</h1>
+<p>Historia ya actions za Admin na Staff. Passwords na payment references hazihifadhiwi hapa.</p>
+<div class="table-wrap"><table><thead><tr><th>Tarehe</th><th>Mhusika</th><th>Action</th><th>Entity</th><th>IP</th><th>Details</th></tr></thead><tbody>
+<% if (!logs.length) { %><tr><td colspan="6">Hakuna audit log bado.</td></tr><% } %>
+<% logs.forEach(log => { %><tr><td><%= log.created_at %> UTC</td><td><%= log.actor_name %> (<%= log.actor_type %>)</td><td><%= log.action %></td><td><%= log.entity_type || '—' %> <%= log.entity_id || '' %></td><td><%= log.ip_address || '—' %></td><td><%= log.details || '—' %></td></tr><% }) %>
+</tbody></table></div>
+<%- include('../../partials/dash-bottom') %>

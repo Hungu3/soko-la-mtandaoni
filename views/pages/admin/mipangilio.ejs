@@ -1,0 +1,41 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<h1>Mipangilio ya Ada</h1>
+<p style="margin-bottom:28px;">Badilisha bei za usajili kwa wauzaji na wasafirishaji. Mabadiliko yanaanza mara moja kwa maombi mapya ya upgrade.</p>
+
+<div class="grid grid-2" style="align-items:start;">
+  <div class="card" style="padding:24px;">
+    <h3 style="font-size:16px; margin-bottom:16px;">Ada za Wauzaji (kwa Mwezi)</h3>
+    <form action="/admin/mipangilio/ada-wauzaji" method="POST">
+      <div class="field"><label>BRONZE (TSH)</label><input type="number" name="BRONZE" value="<%= sellerPricing.BRONZE %>" required></div>
+      <div class="field"><label>SILVER (TSH)</label><input type="number" name="SILVER" value="<%= sellerPricing.SILVER %>" required></div>
+      <div class="field"><label>GOLD (TSH)</label><input type="number" name="GOLD" value="<%= sellerPricing.GOLD %>" required></div>
+      <button type="submit" class="btn btn-accent">Hifadhi Ada za Wauzaji</button>
+    </form>
+  </div>
+
+  <div class="card" style="padding:24px;">
+    <h3 style="font-size:16px; margin-bottom:16px;">Ada za Wasafirishaji (kwa Mwezi)</h3>
+    <form action="/admin/mipangilio/ada-wasafirishaji" method="POST">
+      <% ['bodaboda','gari_ndogo','gari_kubwa','lori'].forEach(function(aina){ %>
+        <p style="font-size:13px; color:var(--text-faint); margin: 14px 0 8px; text-transform:capitalize;"><%= ainaGariJina(aina) %></p>
+        <div class="field-row">
+          <div class="field"><label>BRONZE</label><input type="number" name="<%= aina %>_BRONZE" value="<%= driverPricing[aina].BRONZE %>" required></div>
+          <div class="field"><label>SILVER</label><input type="number" name="<%= aina %>_SILVER" value="<%= driverPricing[aina].SILVER %>" required></div>
+          <div class="field"><label>GOLD</label><input type="number" name="<%= aina %>_GOLD" value="<%= driverPricing[aina].GOLD %>" required></div>
+        </div>
+      <% }) %>
+      <button type="submit" class="btn btn-accent">Hifadhi Ada za Wasafirishaji</button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="padding:24px; margin-top:24px; max-width:420px;">
+  <h3 style="font-size:16px; margin-bottom:16px;">Badilisha Password ya Admin</h3>
+  <form action="/admin/mipangilio/password" method="POST">
+    <div class="field"><label>Password Mpya</label><input type="password" name="password_mpya" minlength="6" required></div>
+    <button type="submit" class="btn btn-outline">Badilisha Password</button>
+  </form>
+</div>
+
+<%- include('../../partials/dash-bottom') %>

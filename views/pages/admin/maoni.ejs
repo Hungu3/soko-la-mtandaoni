@@ -1,0 +1,39 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+  <h1 style="margin:0;">Maoni ya Wanunuzi</h1>
+  <div class="radio-group">
+    <a href="/admin/maoni?status=pending" class="btn btn-sm <%= filter==='pending' ? 'btn-accent':'btn-outline' %>">Yanayosubiri</a>
+    <a href="/admin/maoni?status=published" class="btn btn-sm <%= filter==='published' ? 'btn-accent':'btn-outline' %>">Yaliyochapishwa</a>
+    <a href="/admin/maoni?status=rejected" class="btn btn-sm <%= filter==='rejected' ? 'btn-accent':'btn-outline' %>">Yaliyokataliwa</a>
+  </div>
+</div>
+
+<% if (!maoni.length) { %>
+  <div class="empty"><div class="mark">&#128172;</div>Hakuna maoni kwenye kundi hili.</div>
+<% } else { %>
+  <div class="card" style="padding: 6px 24px;">
+    <% maoni.forEach(r => { %>
+      <div class="review" style="<%= r.imefutwa ? 'opacity:.5;' : '' %>">
+        <div class="top">
+          <span class="who"><%= r.buyer_name %> &rarr; <%= r.jina_duka %>
+            <% if (r.imefutwa) { %><span class="badge badge-rejected">Imefutwa na: <%= r.futwa_na %></span><% } %>
+          </span>
+          <span class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></span>
+        </div>
+        <p class="txt"><%= r.maoni %></p>
+        <div class="row-actions" style="margin-top:10px;">
+          <% if (r.status !== 'published') { %><form action="/admin/maoni/<%= r.id %>/chapisha" method="POST"><button class="btn btn-accent btn-sm">Chapisha</button></form><% } %>
+          <% if (r.status !== 'rejected') { %><form action="/admin/maoni/<%= r.id %>/kataa" method="POST"><button class="btn btn-outline btn-sm">Kataa</button></form><% } %>
+          <% if (!r.imefutwa) { %>
+            <form action="/admin/maoni/<%= r.id %>/futa" method="POST" onsubmit="return confirm('Futa maoni haya?')"><button class="btn btn-danger btn-sm">Futa</button></form>
+          <% } else if (isOwner) { %>
+            <form action="/admin/maoni/<%= r.id %>/rejesha" method="POST"><button class="btn btn-accent btn-sm">Rejesha</button></form>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,68 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<a href="/admin/usafirishaji" class="btn btn-ghost btn-sm" style="margin-bottom:16px;">&larr; Rudi kwenye Orodha</a>
+
+<h1>Usafirishaji #<%= item.id %> <span class="badge badge-<%= item.status === 'imewasili' ? 'approved' : 'pending' %>" style="vertical-align:middle;"><%= item.status %></span></h1>
+
+<% if (item.imefutwa) { %>
+  <div class="alert alert-error">
+    Rekodi hii ilifutwa na <strong><%= item.futwa_na %></strong> (<%= timeAgo(item.futwa_wakati) %>). Bado inapatikana kwako pekee kama Mmiliki.
+    <% if (isOwner) { %>
+      <form action="/admin/usafirishaji/<%= item.id %>/rejesha" method="POST" style="margin-top:10px;"><button class="btn btn-accent btn-sm">Rejesha Rekodi Hii</button></form>
+    <% } %>
+  </div>
+<% } %>
+
+<div class="grid grid-3" style="margin-bottom:28px;">
+  <div class="card" style="padding:20px;">
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:4px;">MNUNUZI</div>
+    <div class="strong"><%= item.buyer_jina || item.buyer_name || '—' %></div>
+    <div style="font-size:13px; color:var(--text-dim);"><%= item.buyer_simu || '' %></div>
+  </div>
+  <div class="card" style="padding:20px;">
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:4px;">MUUZAJI</div>
+    <div class="strong"><%= item.jina_duka || '—' %></div>
+    <div style="font-size:13px; color:var(--text-dim);"><%= item.seller_simu || '' %></div>
+  </div>
+  <div class="card" style="padding:20px;">
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:4px;">MSAFIRISHAJI</div>
+    <div class="strong"><%= item.driver_jina || 'Bado hajapatikana' %></div>
+    <div style="font-size:13px; color:var(--text-dim);"><%= item.driver_simu || '' %></div>
+  </div>
+</div>
+
+<div class="info-row"><div class="k">Bidhaa</div><div class="v"><%= item.bidhaa_jina || '—' %></div></div>
+<div class="info-row"><div class="k">Aina ya Usafirishaji</div><div class="v" style="text-transform:capitalize;"><%= item.aina %></div></div>
+<div class="info-row"><div class="k">Kutoka &rarr; Kwenda</div><div class="v"><%= item.eneo_kuchukua || '—' %> &rarr; <%= item.eneo_kupeleka || '—' %></div></div>
+<div class="info-row"><div class="k">Bei Iliyopendekezwa</div><div class="v"><%= item.gharama_iliyopendekezwa ? fmtMoney(item.gharama_iliyopendekezwa) : '—' %> <% if (item.gharama_imekubaliwa) { %><span class="badge badge-approved">Imekubaliwa</span><% } %></div></div>
+
+<% if (item.kupeleka_lat && item.kupeleka_lng) { %>
+<div style="margin: 18px 0;">
+  <div id="rampaUsafirishaji" class="map-display small"></div>
+</div>
+<% } %>
+
+<h3 style="font-size:17px; margin: 28px 0 14px;">Mazungumzo ya Bei (Mnunuzi &middot; Muuzaji &middot; Msafirishaji)</h3>
+<% if (!ujumbe.length) { %>
+  <p>Bado hakuna ujumbe.</p>
+<% } else { %>
+  <div class="card" style="padding: 8px 20px;">
+    <% ujumbe.forEach(u => { %>
+      <div class="review">
+        <div class="top">
+          <span class="who"><%= u.mtumaji_jina %> <span class="badge badge-free" style="text-transform:capitalize;"><%= u.mtumaji_aina %></span></span>
+          <span style="font-size:12px; color:var(--text-faint);"><%= timeAgo(u.created_at) %></span>
+        </div>
+        <p class="txt"><%= u.ujumbe %><% if (u.bei_pendekezwa) { %> <strong style="color:var(--gold);">(Pendekezo: <%= fmtMoney(u.bei_pendekezwa) %>)</strong><% } %></p>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<% if (item.kupeleka_lat && item.kupeleka_lng) { %>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/public/js/map.js"></script>
+<script>sokoInitMapDisplay('rampaUsafirishaji', <%= item.kupeleka_lat %>, <%= item.kupeleka_lng %>, 'Eneo la kupeleka bidhaa');</script>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

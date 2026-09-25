@@ -1,0 +1,32 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<h1>Maoni ya Wateja</h1>
+<p style="margin-bottom:24px;"><%= maoni.length %> maoni yaliyopokelewa. <% if (!canReply) { %>Kujibu maoni kunahitaji kiwango cha SILVER au GOLD.<% } %></p>
+
+<% if (!maoni.length) { %>
+  <div class="empty"><div class="mark">&#128172;</div>Bado hakuna maoni.</div>
+<% } else { %>
+  <div class="card" style="padding: 6px 24px;">
+    <% maoni.forEach(r => { %>
+      <div class="review">
+        <div class="top">
+          <span class="who"><%= r.buyer_name %> &nbsp;
+            <span class="badge <%= r.status === 'published' ? 'badge-approved' : (r.status === 'pending' ? 'badge-pending' : 'badge-rejected') %>"><%= r.status %></span>
+          </span>
+          <span class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></span>
+        </div>
+        <p class="txt"><%= r.maoni %></p>
+        <% if (r.jibu_muuzaji) { %>
+          <div class="reply"><b>Jibu Lako:</b> <%= r.jibu_muuzaji %></div>
+        <% } else if (canReply && r.status === 'published') { %>
+          <form action="/duka-langu/maoni/<%= r.id %>/jibu" method="POST" style="margin-top:10px; display:flex; gap:8px;">
+            <input type="text" name="jibu" placeholder="Andika jibu lako..." required style="flex:1; background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:9px 12px; color:var(--text); font-size:13.5px;">
+            <button type="submit" class="btn btn-outline btn-sm">Jibu</button>
+          </form>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

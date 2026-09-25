@@ -1,0 +1,99 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:36px;">
+  <div class="wrap detail-grid">
+    <div>
+      <% const photos = allPhotos(bidhaa.picha); %>
+      <div class="gallery-main" style="<% if (photos[0]) { %>background-image:url('/uploads/<%= photos[0] %>')<% } %>">
+        <% if (!photos.length) { %>Hakuna Picha<% } %>
+      </div>
+      <% if (photos.length > 1) { %>
+      <div class="gallery-thumbs">
+        <% photos.forEach(ph => { %><img src="/uploads/<%= ph %>" alt=""><% }) %>
+      </div>
+      <% } %>
+    </div>
+    <div>
+      <p style="margin-bottom:6px;"><a href="/duka/<%= bidhaa.seller_id %>" style="color:var(--indigo); font-weight:600;"><%= bidhaa.jina_duka %></a> &middot; <span class="badge badge-<%= bidhaa.tier.toLowerCase() %>"><%= bidhaa.tier %></span></p>
+      <h1><%= bidhaa.jina %></h1>
+      <div class="price-tag"><%= fmtMoney(bidhaa.bei) %></div>
+      <% if (bidhaa.maelezo) { %><p><%= bidhaa.maelezo %></p><% } %>
+
+      <div style="margin: 22px 0;">
+        <div class="info-row"><div class="k">Kategoria</div><div class="v"><%= bidhaa.kategoria || '—' %></div></div>
+        <div class="info-row"><div class="k">Hali</div><div class="v"><%= bidhaa.hali === 'ipo' ? 'Ipo' : 'Imeuzwa' %></div></div>
+        <div class="info-row"><div class="k">Idadi Iliyopo</div><div class="v"><%= bidhaa.idadi %></div></div>
+        <div class="info-row"><div class="k">Usafirishaji</div><div class="v"><%= bidhaa.gharama_usafirishaji || 'Wasiliana na muuzaji' %></div></div>
+        <div class="info-row"><div class="k">Eneo la Duka</div><div class="v"><%= bidhaa.location || '—' %></div></div>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <a href="tel:<%= bidhaa.simu %>" class="btn btn-accent">&#128222; Piga Simu: <%= bidhaa.simu %></a>
+        <a href="/duka/<%= bidhaa.seller_id %>" class="btn btn-outline">Ona Duka Zima</a>
+      </div>
+      <p class="hint" style="margin-top:14px; font-size:12.5px; color:var(--text-faint);">Wasiliana na muuzaji moja kwa moja kukubaliana bei, usafirishaji wa <strong>Private</strong>, na njia ya malipo. Soko la Mtandaoni halihusiki katika malipo ya bidhaa.</p>
+
+      <div class="card" style="padding:18px; margin-top:20px;">
+        <h4 style="font-size:15px; margin-bottom:6px;">Omba Usafirishaji Kupitia Jukwaa</h4>
+        <p style="font-size:13px; margin-bottom:14px;">Public na Protected zinahitaji uwe umesajiliwa kama mnunuzi — utaunganishwa na muuzaji (na msafirishaji, kwa Public) kukubaliana bei ya usafirishaji.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="/bidhaa/<%= bidhaa.id %>/omba-usafirishaji?aina=public" class="btn btn-gold btn-sm">Omba Usafirishaji wa Public</a>
+          <a href="/bidhaa/<%= bidhaa.id %>/omba-usafirishaji?aina=protected" class="btn btn-outline btn-sm">Omba Usafirishaji wa Protected</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<% if (bidhaaZingine.length) { %>
+<section class="section-tight section-alt">
+  <div class="wrap">
+    <div class="section-head"><h2 style="font-size:20px;">Bidhaa Zingine kutoka Duka Hili</h2></div>
+    <div class="grid grid-4">
+      <% bidhaaZingine.forEach(p => { %>
+        <a href="/bidhaa/<%= p.id %>" class="card product-card">
+          <div class="thumb" style="<% const ph2 = firstPhoto(p.picha); if (ph2) { %>background-image:url('<%= ph2 %>')<% } %>">
+            <% if (!firstPhoto(p.picha)) { %><%= p.jina %><% } %>
+          </div>
+          <div class="body">
+            <div class="p-name"><%= p.jina %></div>
+            <div class="p-price"><%= fmtMoney(p.bei) %></div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<section class="section" id="maoni">
+  <div class="wrap-narrow">
+    <div class="section-head"><h2>Acha Maoni Kuhusu Bidhaa Hii</h2></div>
+    <div class="form-card">
+      <form action="/bidhaa/<%= bidhaa.id %>/maoni" method="POST">
+        <div class="field">
+          <label>Jina Lako</label>
+          <input type="text" name="buyer_name" required placeholder="Jina lako">
+        </div>
+        <div class="field">
+          <label>Nyota (Rating)</label>
+          <div class="star-input">
+            <input type="radio" name="rating" id="r5" value="5" checked><label for="r5">&#9733;</label>
+            <input type="radio" name="rating" id="r4" value="4"><label for="r4">&#9733;</label>
+            <input type="radio" name="rating" id="r3" value="3"><label for="r3">&#9733;</label>
+            <input type="radio" name="rating" id="r2" value="2"><label for="r2">&#9733;</label>
+            <input type="radio" name="rating" id="r1" value="1"><label for="r1">&#9733;</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Maoni Yako</label>
+          <textarea name="maoni" required placeholder="Andika maoni yako kuhusu bidhaa au huduma..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-accent btn-block">Tuma Maoni</button>
+        <p class="hint" style="text-align:center; margin-top:10px;">Maoni yako yatapitiwa na Admin kabla ya kuchapishwa.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

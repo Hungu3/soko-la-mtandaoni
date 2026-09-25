@@ -1,0 +1,37 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<h1>Malalamiko</h1>
+<p style="margin-bottom:24px;">Wasiliana na muuzaji ndani ya saa 48 baada ya lalamiko kupokewa.</p>
+
+<% if (!malalamiko.length) { %>
+  <div class="empty"><div class="mark">&#128172;</div>Hakuna malalamiko yaliyotumwa.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tarehe</th><th>Jina</th><th>Simu</th><th>Duka</th><th>Maelezo</th><th>Hali</th></tr></thead>
+    <tbody>
+      <% malalamiko.forEach(c => { %>
+      <tr>
+        <td><%= timeAgo(c.created_at) %></td>
+        <td class="strong"><%= c.jina %></td>
+        <td><%= c.simu || '—' %></td>
+        <td><%= c.jina_duka || 'Jumla' %></td>
+        <td style="max-width:280px;"><%= c.maelezo %></td>
+        <td>
+          <form action="/admin/malalamiko/<%= c.id %>/hali" method="POST" style="display:flex; gap:6px; align-items:center;">
+            <select name="status" onchange="this.form.submit()">
+              <option value="open" <%= c.status === 'open' ? 'selected' : '' %>>Wazi</option>
+              <option value="responded" <%= c.status === 'responded' ? 'selected' : '' %>>Imejibiwa</option>
+              <option value="resolved" <%= c.status === 'resolved' ? 'selected' : '' %>>Imetatuliwa</option>
+              <option value="escalated" <%= c.status === 'escalated' ? 'selected' : '' %>>Imepelekwa Juu</option>
+            </select>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

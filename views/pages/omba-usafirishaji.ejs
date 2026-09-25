@@ -1,0 +1,43 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap-narrow">
+    <div class="section-head">
+      <div>
+        <h2>Omba Usafirishaji (<%= aina === 'protected' ? 'Protected' : 'Public' %>)</h2>
+        <p>Kwa <%= bidhaa.jina %> kutoka <%= bidhaa.jina_duka %>. Baada ya kutuma, utaunganishwa na muuzaji (na msafirishaji, kwa Public) kwenye ukurasa wa mazungumzo kukubaliana bei ya usafirishaji.</p>
+      </div>
+    </div>
+    <div class="form-card">
+      <form action="/bidhaa/<%= bidhaa.id %>/omba-usafirishaji" method="POST">
+        <input type="hidden" name="aina" value="<%= aina %>">
+        <div class="field" style="background:var(--surface-2); padding:14px; border-radius:6px;">
+          <label style="margin-bottom:2px;">Taarifa Zako (kutoka akaunti yako)</label>
+          <div style="color:var(--text-dim); font-size:13.5px;"><%= currentBuyer.jina %> &middot; <%= currentBuyer.simu %> &middot; <%= currentBuyer.anwani || '' %></div>
+        </div>
+        <div class="field">
+          <label>Eneo la Kupeleka Bidhaa *</label>
+          <input type="text" name="eneo_kupeleka" required value="<%= currentBuyer.anwani || '' %>" placeholder="Mtaa, Mji">
+        </div>
+        <div class="field">
+          <label>Weka Eneo Hasa kwenye Ramani (hiari, husaidia msafirishaji)</label>
+          <div id="rampaKupeleka" class="map-picker"></div>
+          <input type="hidden" name="kupeleka_lat" id="kupeleka_lat" value="<%= currentBuyer.latitude || '' %>">
+          <input type="hidden" name="kupeleka_lng" id="kupeleka_lng" value="<%= currentBuyer.longitude || '' %>">
+        </div>
+        <div class="field">
+          <label>Pendekezo la Bei ya Usafirishaji (hiari)</label>
+          <input type="number" name="gharama_iliyopendekezwa" min="0" placeholder="TSH — unaweza kuachia wazi na kukubaliana baadaye">
+          <div class="hint">Muuzaji na msafirishaji wataweza kukubali au kupendekeza bei nyingine kwenye mazungumzo.</div>
+        </div>
+        <button type="submit" class="btn btn-accent btn-block">Tuma Ombi la Usafirishaji</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/public/js/map.js"></script>
+<script>sokoInitMapPicker('rampaKupeleka', 'kupeleka_lat', 'kupeleka_lng');</script>
+
+<%- include('../partials/bottom') %>

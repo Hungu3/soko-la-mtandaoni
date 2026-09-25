@@ -1,0 +1,62 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<h1><%= bidhaaItem ? 'Hariri Bidhaa' : 'Ongeza Bidhaa Mpya' %></h1>
+<p style="margin-bottom:24px;">Kiwango chako (<%= currentSeller.tier %>) kinaruhusu hadi <%= fmtNum(limits.picha) %> picha kwa kila bidhaa.</p>
+
+<div class="form-card" style="max-width:640px;">
+  <form action="<%= bidhaaItem ? ('/duka-langu/bidhaa/' + bidhaaItem.id + '/hariri') : '/duka-langu/bidhaa/ongeza' %>" method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label>Jina la Bidhaa *</label>
+      <input type="text" name="jina" required value="<%= bidhaaItem ? bidhaaItem.jina : '' %>">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kategoria</label>
+        <input type="text" name="kategoria" value="<%= bidhaaItem ? (bidhaaItem.kategoria || '') : '' %>" placeholder="Mazao, Nguo, Vifaa...">
+      </div>
+      <div class="field">
+        <label>Bei (TSH) *</label>
+        <input type="number" name="bei" required min="0" step="1" value="<%= bidhaaItem ? bidhaaItem.bei : '' %>">
+      </div>
+    </div>
+    <div class="field">
+      <label>Maelezo ya Bidhaa</label>
+      <textarea name="maelezo"><%= bidhaaItem ? (bidhaaItem.maelezo || '') : '' %></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Idadi Iliyopo</label>
+        <input type="number" name="idadi" min="0" value="<%= bidhaaItem ? bidhaaItem.idadi : 1 %>">
+      </div>
+      <div class="field">
+        <label>Gharama ya Usafirishaji</label>
+        <input type="text" name="gharama_usafirishaji" value="<%= bidhaaItem ? (bidhaaItem.gharama_usafirishaji || '') : '' %>" placeholder="Mfano: Anza 3000 TSH">
+      </div>
+    </div>
+    <% if (bidhaaItem) { %>
+    <div class="field">
+      <label>Hali</label>
+      <select name="hali">
+        <option value="ipo" <%= bidhaaItem.hali === 'ipo' ? 'selected' : '' %>>Ipo</option>
+        <option value="imeuzwa" <%= bidhaaItem.hali === 'imeuzwa' ? 'selected' : '' %>>Imeuzwa</option>
+      </select>
+    </div>
+    <% if (allPhotos(bidhaaItem.picha).length) { %>
+    <div class="field">
+      <label>Picha za Sasa</label>
+      <div class="gallery-thumbs">
+        <% allPhotos(bidhaaItem.picha).forEach(ph => { %><img src="/uploads/<%= ph %>" alt=""><% }) %>
+      </div>
+    </div>
+    <% } %>
+    <% } %>
+    <div class="field">
+      <label>Ongeza Picha (hadi <%= fmtNum(limits.picha) %>)</label>
+      <input type="file" name="picha" accept="image/*" multiple>
+    </div>
+    <button type="submit" class="btn btn-accent">Hifadhi Bidhaa</button>
+    <a href="/duka-langu/bidhaa" class="btn btn-ghost">Ghairi</a>
+  </form>
+</div>
+
+<%- include('../../partials/dash-bottom') %>

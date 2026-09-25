@@ -1,0 +1,82 @@
+<%- include('../partials/top') %>
+
+<section class="section-tight" style="padding-top:36px;">
+  <div class="wrap">
+    <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; margin-bottom:10px;">
+      <div class="thumb" style="width:120px; height:120px; border-radius:8px; flex:0 0 auto; background:var(--surface-2) center/cover no-repeat; display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-size:11px; text-align:center; <% if (duka.picha_duka) { %>background-image:url('/uploads/<%= duka.picha_duka %>')<% } %>">
+        <% if (!duka.picha_duka) { %>Duka<% } %>
+      </div>
+      <div style="flex:1; min-width:240px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <h1 style="margin:0; font-size:28px;"><%= duka.jina_duka %></h1>
+          <span class="badge badge-<%= duka.tier.toLowerCase() %>"><%= duka.tier %></span>
+        </div>
+        <p style="margin:0 0 10px;"><%= duka.aina_bidhaa %> &middot; <%= duka.location || 'Tanzania' %></p>
+        <% if (wastaniRating) { %><p style="margin:0 0 10px; color:var(--gold);">&#9733; <%= wastaniRating %>/5 (<%= maoni.length %> maoni)</p><% } %>
+        <% if (duka.maelezo_duka) { %><p><%= duka.maelezo_duka %></p><% } %>
+        <div style="display:flex; gap:20px; flex-wrap:wrap; font-size:13.5px; color:var(--text-dim); margin-top:14px;">
+          <% if (duka.simu) { %><span>&#128222; <%= duka.simu %></span><% } %>
+          <% if (duka.siku_kufunguliwa) { %><span>&#128337; <%= duka.siku_kufunguliwa %></span><% } %>
+        </div>
+      </div>
+      <a href="tel:<%= duka.simu %>" class="btn btn-accent">Piga Simu Muuzaji</a>
+    </div>
+    <% if (duka.latitude && duka.longitude) { %>
+    <div style="margin-top:18px;">
+      <div id="rampaDuka" class="map-display small"></div>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head"><h2>Bidhaa (<%= bidhaa.length %>)</h2></div>
+    <% if (!bidhaa.length) { %>
+      <div class="empty"><div class="mark">&#128230;</div>Duka hili bado halijaongeza bidhaa.</div>
+    <% } else { %>
+    <div class="grid grid-4">
+      <% bidhaa.forEach(p => { %>
+        <a href="/bidhaa/<%= p.id %>" class="card product-card">
+          <div class="thumb" style="<% const ph = firstPhoto(p.picha); if (ph) { %>background-image:url('<%= ph %>')<% } %>">
+            <% if (!firstPhoto(p.picha)) { %><%= p.jina %><% } %>
+          </div>
+          <div class="body">
+            <div class="p-name"><%= p.jina %></div>
+            <div class="p-shop"><%= p.hali === 'imeuzwa' ? 'Imeuzwa' : ('Zilizopo: ' + p.idadi) %></div>
+            <div class="p-price"><%= fmtMoney(p.bei) %></div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap-narrow">
+    <div class="section-head"><h2>Maoni ya Wateja</h2></div>
+    <% if (!maoni.length) { %>
+      <p>Bado hakuna maoni yaliyochapishwa kwa duka hili.</p>
+    <% } else { %>
+      <% maoni.forEach(r => { %>
+        <div class="review">
+          <div class="top">
+            <span class="who"><%= r.buyer_name %></span>
+            <span class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></span>
+          </div>
+          <p class="txt"><%= r.maoni %></p>
+          <% if (r.jibu_muuzaji) { %><div class="reply"><b>Jibu la Muuzaji:</b> <%= r.jibu_muuzaji %></div><% } %>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</section>
+
+<% if (duka.latitude && duka.longitude) { %>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/public/js/map.js"></script>
+<script>sokoInitMapDisplay('rampaDuka', <%= duka.latitude %>, <%= duka.longitude %>, <%- JSON.stringify(duka.jina_duka) %>);</script>
+<% } %>
+
+<%- include('../partials/bottom') %>

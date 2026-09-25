@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingia — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-box">
+    <a href="/" class="brand"><img src="/public/img/logo.png" alt=""><span>Soko la Mtandaoni</span></a>
+    <h1 style="text-align:center; font-size:24px; margin-bottom:22px;">Ingia Kwenye Akaunti Yako</h1>
+
+    <div class="tabs">
+      <a href="/ingia?aina=muuzaji" class="<%= aina === 'muuzaji' ? 'active' : '' %>">Muuzaji</a>
+      <a href="/ingia?aina=mwasafirishaji" class="<%= aina === 'mwasafirishaji' ? 'active' : '' %>">Mwasafirishaji</a>
+      <a href="/ingia?aina=mnunuzi" class="<%= aina === 'mnunuzi' ? 'active' : '' %>">Mnunuzi</a>
+    </div>
+
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+
+    <div class="form-card">
+      <form action="/ingia" method="POST">
+        <input type="hidden" name="aina" value="<%= aina %>">
+        <div class="field">
+          <label>Namba ya Simu au Barua Pepe</label>
+          <input type="text" name="utambulisho" required placeholder="07XXXXXXXX au barua pepe yako">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-accent btn-block">Ingia</button>
+      </form>
+    </div>
+    <p class="center-note">
+      Huna akaunti?
+      <% if (aina === 'muuzaji') { %><a href="/jisajili/muuzaji">Fungua duka</a>
+      <% } else if (aina === 'mwasafirishaji') { %><a href="/jisajili/mwasafirishaji">Jisajili kusafirisha</a>
+      <% } else { %><a href="/jisajili/mnunuzi">Jisajili hapa</a><% } %>
+    </p>
+    <p class="center-note"><a href="/">&larr; Rudi Nyumbani</a></p>
+  </div>
+</div>
+</body>
+</html>

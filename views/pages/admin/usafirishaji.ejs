@@ -1,0 +1,45 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+  <div>
+    <h1 style="margin:0;">Usafirishaji (Ufuatiliaji Kamili)</h1>
+    <p style="margin:6px 0 0;">Kila kinachotokea kati ya Mnunuzi, Muuzaji na Msafirishaji — pamoja na rekodi zilizofichwa na wasimamizi.</p>
+  </div>
+  <div class="radio-group">
+    <a href="/admin/usafirishaji?hali=zote" class="btn btn-sm <%= filter==='zote' ? 'btn-accent':'btn-outline' %>">Zote</a>
+    <a href="/admin/usafirishaji?hali=inasubiri" class="btn btn-sm <%= filter==='inasubiri' ? 'btn-accent':'btn-outline' %>">Zinazosubiri</a>
+    <a href="/admin/usafirishaji?hali=imekubaliwa" class="btn btn-sm <%= filter==='imekubaliwa' ? 'btn-accent':'btn-outline' %>">Zimekubaliwa</a>
+    <a href="/admin/usafirishaji?hali=imewasili" class="btn btn-sm <%= filter==='imewasili' ? 'btn-accent':'btn-outline' %>">Zimewasili</a>
+  </div>
+</div>
+
+<% if (!orodha.length) { %>
+  <div class="empty"><div class="mark">&#128666;</div>Hakuna rekodi za usafirishaji kwenye kundi hili.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tarehe</th><th>Aina</th><th>Duka</th><th>Mnunuzi</th><th>Msafirishaji</th><th>Bei</th><th>Hali</th><th></th></tr></thead>
+    <tbody>
+      <% orodha.forEach(m => { %>
+      <tr style="<%= m.imefutwa ? 'opacity:.55;' : '' %>">
+        <td><%= timeAgo(m.created_at) %></td>
+        <td style="text-transform:capitalize;"><%= m.aina %></td>
+        <td><%= m.jina_duka || '—' %></td>
+        <td><%= m.buyer_jina || m.buyer_name || '—' %></td>
+        <td><%= m.driver_jina || '—' %></td>
+        <td>
+          <% if (m.gharama_iliyopendekezwa) { %><%= fmtMoney(m.gharama_iliyopendekezwa) %><% if (m.gharama_imekubaliwa) { %> &#9989;<% } %><% } else { %>—<% } %>
+        </td>
+        <td>
+          <span class="badge <%= m.status === 'imewasili' ? 'badge-approved' : 'badge-pending' %>"><%= m.status %></span>
+          <% if (m.imefutwa) { %><br><span class="badge badge-rejected" style="margin-top:4px;">Imefutwa na: <%= m.futwa_na %></span><% } %>
+        </td>
+        <td><a href="/admin/usafirishaji/<%= m.id %>" class="btn btn-ghost btn-sm">Ona Mazungumzo</a></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

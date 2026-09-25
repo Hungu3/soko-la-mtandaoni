@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= title %> — Admin — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/admin" class="brand">
+      <img src="/public/img/logo.png" alt="Soko la Mtandaoni">
+      <span>Soko la Mtandaoni<small>PANELI YA MMILIKI</small></span>
+    </a>
+    <div class="nav-cta">
+      <%- include('theme-toggle') %>
+      <select class="preference-select" data-currency data-admin-currency aria-label="Currency"><option value="TSH">TSH</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+      <a href="/" class="btn btn-ghost btn-sm">Ona Tovuti</a>
+      <form action="/admin/toka" method="POST"><button class="btn btn-outline btn-sm">Toka</button></form>
+    </div>
+  </div>
+</nav>
+<div class="dash">
+  <aside class="dash-side">
+    <div class="who">
+      <div class="name"><%= isOwner ? currentAdmin.jina : currentStaff.jina %></div>
+      <div class="meta"><%= isOwner ? currentAdmin.email : currentStaff.email %></div>
+      <div class="meta" style="margin-top:4px;">
+        <span class="badge <%= isOwner ? 'badge-gold' : 'badge-bronze' %>"><%= isOwner ? 'MMILIKI' : 'MSIMAMIZI' %></span>
+      </div>
+    </div>
+    <a href="/admin" class="<%= path === '/admin' ? 'active' : '' %>">Dashibodi</a>
+    <a href="/admin/wauzaji" class="<%= path === '/admin/wauzaji' ? 'active' : '' %>">Wauzaji (Maduka)</a>
+    <a href="/admin/wasafirishaji" class="<%= path === '/admin/wasafirishaji' ? 'active' : '' %>">Wasafirishaji</a>
+    <a href="/admin/usafirishaji" class="<%= path.startsWith('/admin/usafirishaji') ? 'active' : '' %>">Usafirishaji (Ufuatiliaji)</a>
+    <% if (isOwner) { %><a href="/admin/migogoro" class="<%= path.startsWith('/admin/migogoro') ? 'active' : '' %>">Migogoro na Refunds</a><% } %>
+    <% if (isOwner) { %><a href="/admin/logs" class="<%= path.startsWith('/admin/logs') ? 'active' : '' %>">Audit Logs</a><% } %>
+    <a href="/admin/bidhaa" class="<%= path === '/admin/bidhaa' ? 'active' : '' %>">Bidhaa Zote</a>
+    <a href="/admin/maoni" class="<%= path === '/admin/maoni' ? 'active' : '' %>">Maoni ya Wateja</a>
+    <a href="/admin/malalamiko" class="<%= path === '/admin/malalamiko' ? 'active' : '' %>">Malalamiko</a>
+    <a href="/admin/matangazo" class="<%= path === '/admin/matangazo' ? 'active' : '' %>">Matangazo</a>
+    <% if (isOwner) { %>
+    <div style="margin: 16px 0 8px; padding: 10px 12px 4px; border-top:1px solid var(--border-soft); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);">Masuala ya Pesa (Mmiliki Pekee)</div>
+    <a href="/admin/upgrade" class="<%= path === '/admin/upgrade' ? 'active' : '' %>">Maombi ya Upgrade</a>
+    <a href="/admin/mipangilio" class="<%= path === '/admin/mipangilio' ? 'active' : '' %>">Mipangilio ya Ada</a>
+    <a href="/admin/wasimamizi" class="<%= path === '/admin/wasimamizi' ? 'active' : '' %>">Wasimamizi (Staff)</a>
+    <% } %>
+  </aside>
+  <div class="dash-main">
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>

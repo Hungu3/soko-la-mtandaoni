@@ -1,0 +1,66 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<h1>Wasimamizi (Staff)</h1>
+<p style="margin-bottom:24px;">Watu unaowasajili wewe mwenyewe kukusaidia kuendesha jukwaa. Wana ufikiaji wa <strong>kila kitu ISIPOKUWA masuala ya pesa</strong> (ada, kuidhinisha upgrade, mapato), na wakifuta rekodi za usafirishaji (nyeti), hazifutiki kabisa — wewe pekee unaziona na kuzirejesha.</p>
+
+<div class="card" style="padding:24px; margin-bottom:32px; max-width:640px;">
+  <h3 style="font-size:16px; margin-bottom:14px;">Sajili Msimamizi Mpya</h3>
+  <form action="/admin/wasimamizi/ongeza" method="POST">
+    <div class="field-row">
+      <div class="field">
+        <label>Jina Kamili *</label>
+        <input type="text" name="jina" required>
+      </div>
+      <div class="field">
+        <label>Namba ya Simu *</label>
+        <input type="tel" name="simu" required placeholder="07XXXXXXXX">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Barua Pepe *</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="field">
+        <label>Dhima / Jukumu</label>
+        <input type="text" name="dhima" placeholder="Mfano: Msimamizi wa Wauzaji">
+      </div>
+    </div>
+    <div class="field">
+      <label>Password *</label>
+      <input type="password" name="password" required minlength="6">
+    </div>
+    <button type="submit" class="btn btn-accent">Sajili Msimamizi</button>
+  </form>
+</div>
+
+<% if (!wasimamizi.length) { %>
+  <div class="empty"><div class="mark">&#128101;</div>Bado hujasajili msimamizi yeyote.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Jina</th><th>Simu</th><th>Barua Pepe</th><th>Dhima</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% wasimamizi.forEach(m => { %>
+      <tr>
+        <td class="strong"><%= m.jina %></td>
+        <td><%= m.simu %></td>
+        <td><%= m.email %></td>
+        <td><%= m.dhima || '—' %></td>
+        <td><span class="badge <%= m.status === 'active' ? 'badge-approved' : 'badge-rejected' %>"><%= m.status === 'active' ? 'Hai' : 'Amesimamishwa' %></span></td>
+        <td class="row-actions">
+          <% if (m.status === 'active') { %>
+            <form action="/admin/wasimamizi/<%= m.id %>/simamisha" method="POST"><button class="btn btn-outline btn-sm">Simamisha</button></form>
+          <% } else { %>
+            <form action="/admin/wasimamizi/<%= m.id %>/washa" method="POST"><button class="btn btn-accent btn-sm">Washa</button></form>
+          <% } %>
+          <form action="/admin/wasimamizi/<%= m.id %>/futa" method="POST" onsubmit="return confirm('Futa msimamizi huyu kabisa?')"><button class="btn btn-danger btn-sm">Futa</button></form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

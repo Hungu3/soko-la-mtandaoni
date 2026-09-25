@@ -1,0 +1,61 @@
+<%- include('../../partials/dash-top-driver') %>
+
+<h1>Karibu, <%= currentDriver.jina %></h1>
+<p style="margin-bottom:28px;">Aina ya gari: <strong style="text-transform:capitalize;"><%= currentDriver.aina_gari.replace('_',' ') %></strong></p>
+
+<div class="stat-cards">
+  <div class="stat-card accent">
+    <div class="n"><%= ordersMwezi %> / <%= fmtNum(limits.orders) %></div>
+    <div class="l">Orders Mwezi Huu</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><%= currentDriver.tier %></div>
+    <div class="l">Kiwango cha Sasa</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><span class="badge badge-<%= currentDriver.status %>"><%= currentDriver.status %></span></div>
+    <div class="l">Hali ya Akaunti</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><%= zinazoendelea.length %></div>
+    <div class="l">Zinazoendelea Sasa</div>
+  </div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+  <h3 style="font-size:17px; margin:0;">Safari Zinazoendelea</h3>
+  <a href="/safari-yangu/maombi" class="btn btn-accent btn-sm">Ona Maombi Mapya</a>
+</div>
+
+<% if (!zinazoendelea.length) { %>
+  <div class="empty"><div class="mark">&#128666;</div>Hakuna safari inayoendelea kwa sasa.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Bidhaa</th><th>Duka</th><th>Mnunuzi</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% zinazoendelea.forEach(m => { %>
+      <tr>
+        <td class="strong"><%= m.bidhaa_jina || '—' %></td>
+        <td><%= m.jina_duka || '—' %> &middot; <%= m.seller_location || '' %></td>
+        <td><%= m.buyer_name || '—' %> <%= m.buyer_simu ? ('· ' + m.buyer_simu) : '' %></td>
+        <td><span class="badge badge-pending"><%= m.status %></span></td>
+        <td class="row-actions">
+          <% if (m.status === 'imekubaliwa') { %>
+            <form action="/safari-yangu/safari/<%= m.id %>/inasafirishwa" method="POST">
+              <button class="btn btn-outline btn-sm">Nimeanza Kusafirisha</button>
+            </form>
+          <% } else if (m.status === 'inasafirishwa') { %>
+            <form action="/safari-yangu/safari/<%= m.id %>/imewasili" method="POST">
+              <button class="btn btn-accent btn-sm">Nimewasilisha</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

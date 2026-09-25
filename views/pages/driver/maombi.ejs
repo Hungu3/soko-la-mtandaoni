@@ -1,0 +1,41 @@
+<%- include('../../partials/dash-top-driver') %>
+
+<h1>Maombi Mapya ya Usafirishaji</h1>
+<p style="margin-bottom:24px;">Umetumia orders <%= ordersMwezi %> kati ya <%= fmtNum(limits.orders) %> zinazoruhusiwa mwezi huu (kiwango <%= currentDriver.tier %>).</p>
+
+<% if (kikomoKimefikiwa) { %>
+  <div class="empty" style="border:1px solid var(--border-soft); border-radius:var(--radius-lg); background:var(--surface);">
+    <div class="mark">&#128274;</div>
+    Umefikia kikomo cha orders <%= fmtNum(limits.orders) %> kwa mwezi huu.<br><br>
+    <a href="/safari-yangu/upgrade" class="btn btn-gold btn-sm">Boresha Kiwango Chako</a>
+  </div>
+<% } else if (!maombi.length) { %>
+  <div class="empty"><div class="mark">&#128666;</div>Hakuna maombi mapya ya "Public Delivery" kwa sasa. Rudi tena baadaye.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Bidhaa</th><th>Duka</th><th>Kutoka &rarr; Kwenda</th><th>Mnunuzi</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% maombi.forEach(m => { %>
+      <tr>
+        <td class="strong"><%= m.bidhaa_jina || '—' %></td>
+        <td><%= m.jina_duka || '—' %></td>
+        <td><%= m.eneo_kuchukua || m.seller_location || '—' %> &rarr; <%= m.eneo_kupeleka || '—' %></td>
+        <td><%= m.buyer_name || '—' %></td>
+        <td class="row-actions">
+          <form action="/safari-yangu/maombi/<%= m.id %>/kubali" method="POST">
+            <button class="btn btn-accent btn-sm">Kubali</button>
+          </form>
+          <form action="/safari-yangu/maombi/<%= m.id %>/kataa" method="POST">
+            <button class="btn btn-ghost btn-sm">Kataa</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="hint" style="margin-top:14px;">Unatakiwa kukubali au kukataa ombi ndani ya dakika 5 tangu lipokewe.</p>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

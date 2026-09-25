@@ -1,0 +1,35 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap-narrow">
+    <div class="section-head"><div><h2>Tuma Malalamiko au Maoni</h2><p>Jukwaa litawasiliana na muuzaji ndani ya saa 48 na kufuatilia hadi lalamiko litatuliwe.</p></div></div>
+    <div class="form-card">
+      <form action="/malalamiko" method="POST">
+        <div class="field-row">
+          <div class="field">
+            <label>Jina Lako</label>
+            <input type="text" name="jina" required>
+          </div>
+          <div class="field">
+            <label>Namba ya Simu</label>
+            <input type="tel" name="simu">
+          </div>
+        </div>
+        <div class="field">
+          <label>Duka Linalohusika (hiari)</label>
+          <select name="seller_id">
+            <option value="">-- Halihusiani na duka maalum --</option>
+            <% maduka.forEach(d => { %><option value="<%= d.id %>"><%= d.jina_duka %></option><% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label>Maelezo ya Lalamiko</label>
+          <textarea name="maelezo" required placeholder="Eleza tatizo ulilokutana nalo..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-accent btn-block">Tuma Malalamiko</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

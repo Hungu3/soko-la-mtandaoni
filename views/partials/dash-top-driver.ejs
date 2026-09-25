@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= title %> — Safari Yangu — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">
+      <img src="/public/img/logo.png" alt="Soko la Mtandaoni">
+      <span>Soko la Mtandaoni<small>DASHIBODI YA MWASAFIRISHAJI</small></span>
+    </a>
+    <div class="nav-cta">
+      <select class="preference-select" data-currency aria-label="Currency"><option value="TSH">TSH</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+      <%- include('theme-toggle') %>
+      <form action="/toka" method="POST"><button class="btn btn-outline btn-sm">Toka</button></form>
+    </div>
+  </div>
+</nav>
+<div class="dash">
+  <aside class="dash-side">
+    <div class="who">
+      <div class="name"><%= currentDriver.jina %></div>
+      <div class="meta">
+        <span class="badge badge-<%= currentDriver.tier.toLowerCase() %>"><%= currentDriver.tier %></span>
+        &nbsp;<span class="badge badge-<%= currentDriver.status %>"><%= currentDriver.status %></span>
+      </div>
+      <div class="meta" style="margin-top:6px; text-transform:capitalize;"><%= currentDriver.aina_gari.replace('_',' ') %></div>
+    </div>
+    <a href="/safari-yangu" class="<%= path === '/safari-yangu' ? 'active' : '' %>">Dashibodi</a>
+    <a href="/safari-yangu/maombi" class="<%= path === '/safari-yangu/maombi' ? 'active' : '' %>">Maombi Mapya</a>
+    <a href="/safari-yangu/upgrade" class="<%= path === '/safari-yangu/upgrade' ? 'active' : '' %>">Boresha Kiwango</a>
+  </aside>
+  <div class="dash-main">
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>

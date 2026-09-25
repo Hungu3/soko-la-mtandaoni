@@ -1,0 +1,33 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+  <h1 style="margin:0;">Historia ya Kuboresha Kiwango</h1>
+  <div class="radio-group">
+    <a href="/admin/upgrade?status=pending" class="btn btn-sm <%= filter==='pending' ? 'btn-accent':'btn-outline' %>">Yanayosubiri</a>
+    <a href="/admin/upgrade?status=approved" class="btn btn-sm <%= filter==='approved' ? 'btn-accent':'btn-outline' %>">Yaliyoidhinishwa</a>
+    <a href="/admin/upgrade?status=rejected" class="btn btn-sm <%= filter==='rejected' ? 'btn-accent':'btn-outline' %>">Yaliyokataliwa</a>
+  </div>
+</div>
+
+<% if (!maombi.length) { %>
+  <div class="empty"><div class="mark">&#11014;&#65039;</div>Hakuna maombi kwenye kundi hili.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tarehe</th><th>Akaunti</th><th>Aina</th><th>Kiwango</th><th>Hali</th></tr></thead>
+    <tbody>
+      <% maombi.forEach(m => { %>
+      <tr>
+        <td><%= timeAgo(m.created_at) %></td>
+        <td class="strong"><%= m.account ? (m.account.jina || m.account.jina_duka) : 'Haipo tena' %><br><span style="font-size:12px; color:var(--text-faint); font-weight:400;"><%= m.account ? m.account.simu : '' %></span></td>
+        <td style="text-transform:capitalize;"><%= m.account_type === 'seller' ? 'Muuzaji' : 'Mwasafirishaji' %></td>
+        <td><span class="badge badge-<%= m.kiwango_kilichoombwa.toLowerCase() %>"><%= m.kiwango_kilichoombwa %></span></td>
+        <td><span class="badge badge-<%= m.status %>"><%= m.status %></span></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

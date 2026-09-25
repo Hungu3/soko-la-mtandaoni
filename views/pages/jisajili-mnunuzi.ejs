@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jisajili — Mnunuzi — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-box">
+    <a href="/" class="brand"><img src="/public/img/logo.png" alt=""><span>Soko la Mtandaoni</span></a>
+    <h1 style="text-align:center; font-size:24px; margin-bottom:6px;">Jisajili kama Mnunuzi</h1>
+    <p style="text-align:center; margin:0 auto 24px;">Kununua kwa kuwasiliana na muuzaji hakuhitaji usajili. Lakini kuomba usafirishaji wa Public/Protected, na kufuatilia historia yako, unahitaji akaunti kamili.</p>
+
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+
+    <div class="form-card">
+      <form action="/jisajili/mnunuzi" method="POST">
+        <div class="field">
+          <label>Jina Kamili *</label>
+          <input type="text" name="jina" required>
+        </div>
+        <div class="field">
+          <label>Namba ya Simu *</label>
+          <input type="tel" name="simu" required placeholder="07XXXXXXXX">
+        </div>
+        <div class="field">
+          <label>Barua Pepe *</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="field">
+          <label>Anwani (kwa ajili ya usafirishaji) *</label>
+          <input type="text" name="anwani" required placeholder="Mtaa, Mji">
+        </div>
+        <div class="field">
+          <label>Password *</label>
+          <input type="password" name="password" required minlength="6">
+        </div>
+        <p class="hint" style="margin-bottom:14px;">Taarifa zote ni za lazima ili uweze kuomba usafirishaji wa Public/Protected na kuunganishwa na msafirishaji kwa usalama.</p>
+        <button type="submit" class="btn btn-accent btn-block">Jisajili</button>
+      </form>
+    </div>
+    <p class="center-note">Tayari una akaunti? <a href="/ingia?aina=mnunuzi">Ingia hapa</a></p>
+  </div>
+</div>
+</body>
+</html>

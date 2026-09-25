@@ -1,0 +1,46 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<h1>Dashibodi ya Mmiliki</h1>
+<p style="margin-bottom:28px;">Muhtasari wa jukwaa zima — maduka, wasafirishaji, na shughuli za jukwaa.</p>
+
+<div class="stat-cards">
+  <div class="stat-card accent"><div class="n"><%= stats.maduka %></div><div class="l">Maduka Yaliyoidhinishwa</div></div>
+  <div class="stat-card accent"><div class="n"><%= stats.wasafirishaji %></div><div class="l">Wasafirishaji Waliopo</div></div>
+  <div class="stat-card"><div class="n"><%= stats.wanunuzi %></div><div class="l">Wanunuzi Waliojisajili</div></div>
+  <% if (isOwner) { %><div class="stat-card"><div class="n" data-admin-money="<%= mapatoMuuzaji + mapatoDereva %>"><%= fmtMoney(mapatoMuuzaji + mapatoDereva) %></div><div class="l">Makadirio ya Mapato/Mwezi</div></div><% } %>
+  <% if (isOwner) { %><div class="stat-card"><div class="n" data-admin-money="<%= realizedRevenue %>"><%= fmtMoney(realizedRevenue) %></div><div class="l">Mapato Halisi</div></div><% } %>
+</div>
+
+<div class="grid grid-4" style="margin-bottom:32px;">
+  <a href="/admin/wauzaji?status=pending" class="card" style="padding:20px;">
+    <div class="stat-card" style="border:none; padding:0;"><div class="n"><%= stats.maduka_pending %></div><div class="l">Maduka Yanayosubiri</div></div>
+  </a>
+  <a href="/admin/wasafirishaji?status=pending" class="card" style="padding:20px;">
+    <div class="stat-card" style="border:none; padding:0;"><div class="n"><%= stats.wasafirishaji_pending %></div><div class="l">Wasafirishaji Wanaosubiri</div></div>
+  </a>
+  <a href="/admin/maoni?status=pending" class="card" style="padding:20px;">
+    <div class="stat-card" style="border:none; padding:0;"><div class="n"><%= stats.maoni_pending %></div><div class="l">Maoni Yanayosubiri</div></div>
+  </a>
+  <a href="/admin/malalamiko" class="card" style="padding:20px;">
+    <div class="stat-card" style="border:none; padding:0;"><div class="n"><%= stats.malalamiko_wazi %></div><div class="l">Malalamiko Wazi</div></div>
+  </a>
+</div>
+
+<div class="grid grid-2">
+  <% if (isOwner) { %><div class="card" style="padding:24px;">
+    <h3 style="font-size:17px;">Mapato Yanayokadiriwa kwa Mwezi</h3>
+    <div class="info-row"><div class="k">Kutoka kwa Wauzaji</div><div class="v strong"><%= fmtMoney(mapatoMuuzaji) %></div></div>
+    <div class="info-row"><div class="k">Kutoka kwa Wasafirishaji</div><div class="v strong"><%= fmtMoney(mapatoDereva) %></div></div>
+    <div class="info-row"><div class="k">Jumla</div><div class="v strong" style="color:var(--gold);"><%= fmtMoney(mapatoMuuzaji + mapatoDereva) %></div></div>
+    <p class="hint">Kadirio hili linatokana na viwango vya sasa vya akaunti zilizoidhinishwa. Halijumuishi mapato halisi yaliyolipwa.</p>
+  </div><% } %>
+  <div class="card" style="padding:24px;">
+    <h3 style="font-size:17px;">Maombi Yanayosubiri Uamuzi</h3>
+    <% if (isOwner) { %><div class="info-row"><div class="k">Upgrade za Kiwango</div><div class="v strong"><%= stats.upgrade_pending %></div></div><% } %>
+    <div class="info-row"><div class="k">Matangazo Yanayoendelea</div><div class="v strong"><%= stats.matangazo %></div></div>
+    <% if (isOwner) { %><div class="info-row"><div class="k">Pesa Zilizoshikiliwa Escrow</div><div class="v strong" data-admin-money="<%= escrowBalance %>"><%= fmtMoney(escrowBalance) %></div></div><div class="info-row"><div class="k">Migogoro Isiyofungwa</div><div class="v strong"><%= disputeCount %></div></div><% } %>
+    <% if (isOwner) { %><a href="/admin/upgrade" class="btn btn-outline btn-sm" style="margin-top:14px;">Ona Maombi ya Upgrade</a><% } %>
+  </div>
+</div>
+
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= title %> — Duka Langu — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="theme-<%= currentSeller.theme_color || 'indigo' %>">
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">
+      <img src="/public/img/logo.png" alt="Soko la Mtandaoni">
+      <span>Soko la Mtandaoni<small>DASHIBODI YA MUUZAJI</small></span>
+    </a>
+    <div class="nav-cta">
+      <select class="preference-select" data-currency aria-label="Currency"><option value="TSH">TSH</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+      <%- include('theme-toggle') %>
+      <a href="/duka/<%= currentSeller.id %>" class="btn btn-ghost btn-sm">Ona Duka Langu Live</a>
+      <form action="/toka" method="POST"><button class="btn btn-outline btn-sm">Toka</button></form>
+    </div>
+  </div>
+</nav>
+<div class="dash">
+  <aside class="dash-side">
+    <div class="who">
+      <div class="name"><%= currentSeller.jina_duka %></div>
+      <div class="meta">
+        <span class="badge badge-<%= currentSeller.tier.toLowerCase() %>"><%= currentSeller.tier %></span>
+        &nbsp;<span class="badge badge-<%= currentSeller.status %>"><%= currentSeller.status %></span>
+      </div>
+    </div>
+    <a href="/duka-langu" class="<%= path === '/duka-langu' ? 'active' : '' %>">Dashibodi</a>
+    <a href="/duka-langu/bidhaa" class="<%= path.startsWith('/duka-langu/bidhaa') ? 'active' : '' %>">Bidhaa Zangu</a>
+    <a href="/duka-langu/maoni" class="<%= path === '/duka-langu/maoni' ? 'active' : '' %>">Maoni ya Wateja</a>
+    <a href="/duka-langu/usafirishaji" class="<%= path === '/duka-langu/usafirishaji' ? 'active' : '' %>">Usafirishaji</a>
+    <a href="/duka-langu/mipangilio" class="<%= path === '/duka-langu/mipangilio' ? 'active' : '' %>">Mipangilio ya Duka</a>
+    <a href="/duka-langu/upgrade" class="<%= path === '/duka-langu/upgrade' ? 'active' : '' %>">Boresha Kiwango</a>
+  </aside>
+  <div class="dash-main">
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>

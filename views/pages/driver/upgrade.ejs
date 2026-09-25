@@ -1,0 +1,48 @@
+<%- include('../../partials/dash-top-driver') %>
+
+<h1>Boresha Huduma Yako</h1>
+<p style="margin-bottom:10px;">Kiwango chako cha sasa: <span class="badge badge-<%= currentDriver.tier.toLowerCase() %>"><%= currentDriver.tier %></span> &middot; Aina ya gari: <strong style="text-transform:capitalize;"><%= currentDriver.aina_gari.replace('_',' ') %></strong></p>
+<p class="hint" style="margin-bottom:28px;">Subscription ya kiwango inalipiwa kwa siku 30. <%= currentDriver.subscription_expires_at ? 'Inaisha ' + currentDriver.subscription_expires_at.slice(0, 10) + '.' : 'Uko kwenye Free.' %></p>
+
+<div class="pricing-grid" style="margin-bottom:36px;">
+  <% ['BRONZE','SILVER','GOLD'].forEach(function(tier){ %>
+    <div class="tier-card <%= tier === 'SILVER' ? 'featured' : '' %>">
+      <div class="tier-name"><%= tier %></div>
+      <div class="tier-price"><%= fmtMoney(pricing[tier]) %><span>/mwezi</span></div>
+      <% if (currentDriver.tier === tier) { %>
+        <button class="btn btn-outline btn-block" disabled>Kiwango Chako cha Sasa</button>
+      <% } else { %>
+        <form action="/safari-yangu/upgrade" method="POST">
+          <input type="hidden" name="kiwango" value="<%= tier %>">
+          <div class="field" style="margin-bottom:10px;">
+            <select name="njia_malipo" required><option value="">Chagua njia ya malipo</option><option value="M-Pesa">M-Pesa</option><option value="T-Pesa">T-Pesa</option><option value="Airtel Money">Airtel Money</option><option value="Benki">Benki</option></select>
+          </div>
+          <div class="field" style="margin-bottom:10px;"><input name="payment_ref" required placeholder="Namba ya muamala"></div>
+          <button type="submit" class="btn <%= tier === 'SILVER' ? 'btn-gold' : 'btn-accent' %> btn-block">Lipa na Boresha</button>
+        </form>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+
+<h3 style="font-size:17px; margin-bottom:14px;">Historia ya Maombi</h3>
+<% if (!requests.length) { %>
+  <p>Bado hujaomba kuboresha kiwango.</p>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tarehe</th><th>Kiwango</th><th>Hali</th></tr></thead>
+    <tbody>
+      <% requests.forEach(r => { %>
+      <tr>
+        <td><%= timeAgo(r.created_at) %></td>
+        <td class="strong"><%= r.kiwango_kilichoombwa %></td>
+        <td><span class="badge badge-<%= r.status %>"><%= r.status %></span></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

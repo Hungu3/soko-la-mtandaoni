@@ -1,0 +1,8 @@
+<%- include('../../partials/dash-top-admin') %>
+<h1>Migogoro na Refunds</h1>
+<p>Owner anaamua kama malipo yaliyoshikiliwa yarudishwe kwa mnunuzi au yaachiliwe kwa muuzaji.</p>
+<% if (!migogoro.length) { %><div class="empty">Hakuna migogoro.</div><% } else { %>
+<div class="table-wrap"><table><thead><tr><th>Order</th><th>Mnunuzi</th><th>Sababu</th><th>Maelezo</th><th>Escrow</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>
+<% migogoro.forEach(d => { %><tr><td>#<%= d.delivery_id %></td><td><%= d.buyer_name || '—' %></td><td><%= d.reason %></td><td><%= d.details %></td><td><%= fmtMoney(d.escrow_amount) %></td><td><span class="badge badge-<%= d.status %>"><%= d.status %></span></td><td><% if (!['resolved','refunded'].includes(d.status)) { %><div class="row-actions"><form action="/admin/migogoro/<%= d.id %>/resolve" method="POST"><input type="hidden" name="decision" value="under_review"><button class="btn btn-outline btn-sm">Under Review</button></form><form action="/admin/migogoro/<%= d.id %>/resolve" method="POST"><input type="hidden" name="decision" value="escalated"><button class="btn btn-gold btn-sm">Escalate</button></form><form action="/admin/migogoro/<%= d.id %>/resolve" method="POST"><input type="hidden" name="decision" value="refund"><button class="btn btn-danger btn-sm">Refund</button></form><form action="/admin/migogoro/<%= d.id %>/resolve" method="POST"><input type="hidden" name="decision" value="release"><button class="btn btn-accent btn-sm">Release</button></form></div><% } else { %><%= d.resolution %><% } %></td></tr><% }) %>
+</tbody></table></div><% } %>
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,3 @@
+<form action="/portal-siri/2fa" method="POST">
+<!DOCTYPE html>
+<html lang="sw"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Uthibitisho wa Pili</title><link rel="stylesheet" href="/public/css/style.css"></head><body><div class="auth-shell"><div class="auth-box"><h1>Uthibitisho wa Pili</h1><p>Weka code ya pili ya Admin/Staff kabla ya kufungua dashboard.</p><% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %><form action="/admin/2fa" method="POST"><div class="field"><label>2FA Code</label><input name="code" type="password" autocomplete="one-time-code" required></div><button class="btn btn-accent btn-block">Thibitisha</button></form></div></div></body></html>

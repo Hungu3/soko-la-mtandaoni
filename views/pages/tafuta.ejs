@@ -1,0 +1,40 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap">
+    <div class="searchbar" style="max-width:640px; margin-bottom:30px;">
+      <form action="/tafuta" method="GET" style="display:flex; width:100%; gap:8px; flex-wrap:wrap;">
+        <input type="text" name="q" value="<%= q %>" placeholder="Tafuta bidhaa, kategoria, au duka...">
+        <select name="location" aria-label="Mkoa"><option value="">Mkoa wote</option><option <%= location === 'Dar es Salaam' ? 'selected' : '' %>>Dar es Salaam</option><option <%= location === 'Arusha' ? 'selected' : '' %>>Arusha</option><option <%= location === 'Mwanza' ? 'selected' : '' %>>Mwanza</option><option <%= location === 'Morogoro' ? 'selected' : '' %>>Morogoro</option><option <%= location === 'Tanga' ? 'selected' : '' %>>Tanga</option></select>
+        <select name="kategoria" aria-label="Kategoria"><option value="">Kategoria zote</option><option <%= kategoria === 'Nguo' ? 'selected' : '' %>>Nguo</option><option <%= kategoria === 'Mazao' ? 'selected' : '' %>>Mazao</option><option <%= kategoria === 'Vifaa' ? 'selected' : '' %>>Vifaa</option><option <%= kategoria === 'Vyakula' ? 'selected' : '' %>>Vyakula</option></select>
+        <button type="submit">Tafuta</button>
+      </form>
+    </div>
+    <div class="section-head">
+      <div>
+        <h2><%= matokeo.length %> Matokeo <% if (q) { %>kwa "<%= q %>"<% } %></h2>
+        <p>Bidhaa kutoka kwa maduka yaliyoidhinishwa, yamepangwa kwa kiwango cha duka.</p>
+      </div>
+    </div>
+    <% if (!matokeo.length) { %>
+      <div class="empty"><div class="mark">&#128269;</div>Hakuna bidhaa zilizopatikana. Jaribu maneno mengine.</div>
+    <% } else { %>
+    <div class="grid grid-4">
+      <% matokeo.forEach(p => { %>
+        <a href="/bidhaa/<%= p.id %>" class="card product-card">
+          <div class="thumb" style="<% const ph = firstPhoto(p.picha); if (ph) { %>background-image:url('<%= ph %>')<% } %>">
+            <% if (!firstPhoto(p.picha)) { %><%= p.jina %><% } %>
+          </div>
+          <div class="body">
+            <div class="p-name"><%= p.jina %></div>
+            <div class="p-shop"><%= p.jina_duka %> &middot; <span class="badge badge-<%= p.tier.toLowerCase() %>" style="font-size:10px;"><%= p.tier %></span></div>
+            <div class="p-price"><%= fmtMoney(p.bei) %></div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

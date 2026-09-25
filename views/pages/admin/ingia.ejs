@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Ingia — Soko la Mtandaoni</title>
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-box">
+    <a href="/" class="brand"><img src="/public/img/logo.png" alt=""><span>Soko la Mtandaoni</span></a>
+    <h1 style="text-align:center; font-size:22px; margin-bottom:6px;">Paneli ya Usimamizi</h1>
+    <p style="text-align:center; margin:0 auto 24px;">Kwa Mmiliki na Wasimamizi (Staff) — ingia kusimamia jukwaa.</p>
+
+    <% if (typeof flashError !== 'undefined' && flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>
+
+    <div class="form-card">
+      <form action="/portal-siri/ingia" method="POST">
+        <div class="field">
+          <label>Barua Pepe au Namba ya Simu</label>
+          <input type="text" name="utambulisho" required placeholder="barua pepe au 07XXXXXXXX">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-accent btn-block">Ingia</button>
+      </form>
+    </div>
+    <p class="center-note"><a href="/">&larr; Rudi kwenye Tovuti</a></p>
+  </div>
+</div>
+</body>
+</html>

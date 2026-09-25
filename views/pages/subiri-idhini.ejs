@@ -1,0 +1,23 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:80px; padding-bottom:100px;">
+  <div class="wrap-narrow" style="text-align:center;">
+    <% if (status === 'pending') { %>
+      <div style="font-size:44px; margin-bottom:18px;">&#9203;</div>
+      <h1 style="font-size:26px;">Ombi Lako Bado Linakaguliwa</h1>
+      <p style="margin:0 auto 26px;">Admin anakagua taarifa za <%= aina %> yako. Utapata ufikiaji kamili mara ombi lako litakapoidhinishwa. Hii kwa kawaida huchukua muda mfupi.</p>
+    <% } else if (status === 'rejected') { %>
+      <div style="font-size:44px; margin-bottom:18px;">&#10060;</div>
+      <h1 style="font-size:26px;">Ombi Halikuidhinishwa</h1>
+      <p style="margin:0 auto 26px;">Samahani, ombi lako la usajili halikuidhinishwa. Wasiliana na Admin kwa maelezo zaidi au kwa msaada.</p>
+    <% } else { %>
+      <div style="font-size:44px; margin-bottom:18px;">&#128683;</div>
+      <h1 style="font-size:26px;">Akaunti Imesimamishwa</h1>
+      <p style="margin:0 auto 26px;">Akaunti yako ya <%= aina %> imesimamishwa kwa sasa. Wasiliana na Admin kwa maelezo zaidi.</p>
+    <% } %>
+    <a href="/malalamiko" class="btn btn-outline">Wasiliana na Admin</a>
+    <form action="/toka" method="POST" style="margin-top:14px;"><button class="btn btn-ghost">Toka</button></form>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

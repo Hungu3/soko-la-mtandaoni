@@ -1,0 +1,92 @@
+<%- include('../../partials/dash-top-admin') %>
+
+<h1>Matangazo</h1>
+<p style="margin-bottom:24px;">Haya yanaonekana upande wa kulia wa ukurasa wa nyumbani (kama Facebook) — ikiwa ni <strong>Ads</strong> (yaliyolipiwa) au <strong>matangazo ya kawaida</strong>, kwa njia ya picha au video.</p>
+
+<div class="card" style="padding:24px; margin-bottom:32px; max-width:640px;">
+  <h3 style="font-size:16px; margin-bottom:14px;">Ongeza Tangazo Jipya</h3>
+  <form action="/admin/matangazo/ongeza" method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label>Aina ya Tangazo</label>
+      <div class="radio-group">
+        <label class="radio-pill"><input type="radio" name="aina" value="kawaida" checked><span>Tangazo la Kawaida</span></label>
+        <% if (isOwner) { %>
+        <label class="radio-pill"><input type="radio" name="aina" value="ad"><span>Ad (Imelipiwa) &mdash; Mmiliki Pekee</span></label>
+        <% } %>
+      </div>
+      <% if (!isOwner) { %><div class="hint">Kuweka "Ad" iliyolipiwa ni jambo la kifedha — Mmiliki pekee anaweza.</div><% } %>
+    </div>
+    <div class="field">
+      <label>Muundo</label>
+      <div class="radio-group">
+        <label class="radio-pill"><input type="radio" name="muundo" value="picha" checked><span>Picha</span></label>
+        <label class="radio-pill"><input type="radio" name="muundo" value="video"><span>Video</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Kichwa cha Tangazo *</label>
+      <input type="text" name="kichwa" required>
+    </div>
+    <div class="field">
+      <label>Maelezo (Caption)</label>
+      <textarea name="maelezo" placeholder="Maelezo mafupi yatakayoonekana chini ya picha/video..."></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Picha ya Tangazo (ikiwa umechagua "Picha")</label>
+        <input type="file" name="picha_faili" accept="image/*">
+      </div>
+      <div class="field">
+        <label>Kiungo cha Video (ikiwa umechagua "Video")</label>
+        <input type="text" name="video" placeholder="https://... (faili la .mp4 au kiungo)">
+      </div>
+    </div>
+    <div class="field">
+      <label>Kiungo (Link) cha kubofya — hiari</label>
+      <input type="text" name="kiungo" placeholder="https://...">
+    </div>
+    <% if (isOwner) { %>
+    <div class="field-row" style="background:var(--surface-2); padding:14px; border-radius:6px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>Jina la Mtangazaji (kwa Ads)</label>
+        <input type="text" name="mtangazaji" placeholder="Kampuni/mtu aliyelipia">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Muda wa Tangazo (siku)</label>
+        <input type="number" name="duration_days" min="1" max="365" value="7">
+      </div>
+    </div>
+    <div class="hint">Bei ya Ad huhesabiwa kiotomatiki kwa ukubwa wa faili na siku: takriban 500 TSH kwa MB kwa siku. Tangazo hujizima liki-expire.</div>
+    <% } %>
+    <button type="submit" class="btn btn-accent" style="margin-top:16px;">Ongeza Tangazo</button>
+  </form>
+</div>
+
+<% if (!matangazo.length) { %>
+  <div class="empty"><div class="mark">&#128276;</div>Bado hakuna matangazo.</div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Kichwa</th><th>Aina</th><th>Muundo</th><th>Muda</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% matangazo.forEach(m => { %>
+      <tr>
+        <td class="strong"><%= m.kichwa %></td>
+        <td><span class="badge <%= m.aina === 'ad' ? 'badge-gold' : 'badge-free' %>"><%= m.aina === 'ad' ? 'AD' : 'Kawaida' %></span></td>
+        <td style="text-transform:capitalize;"><%= m.muundo || 'picha' %></td>
+        <td><%= m.mtangazaji || '—' %><% if (isOwner && m.kiasi_kilicholipwa) { %><br><span style="font-size:12px; color:var(--text-faint);"><%= fmtMoney(m.kiasi_kilicholipwa) %></span><% } %></td>
+        <td><%= m.duration_days || '—' %> siku<% if (m.expires_at) { %><br><span style="font-size:12px; color:var(--text-faint);">hadi <%= m.expires_at.slice(0, 10) %></span><% } %></td>
+        <td><span class="badge <%= m.status === 'approved' ? 'badge-approved' : 'badge-pending' %>"><%= m.status || (m.active ? 'approved' : 'rejected') %></span></td>
+        <td class="row-actions">
+          <% if (isOwner && m.status === 'pending') { %><form action="/portal-siri/matangazo/<%= m.id %>/approve" method="POST"><button class="btn btn-accent btn-sm">Kagua na Chapisha</button></form><% } %>
+          <form action="/admin/matangazo/<%= m.id %>/toggle" method="POST"><button class="btn btn-outline btn-sm"><%= m.active ? 'Zima' : 'Washa' %></button></form>
+          <form action="/admin/matangazo/<%= m.id %>/futa" method="POST" onsubmit="return confirm('Futa tangazo hili?')"><button class="btn btn-danger btn-sm">Futa</button></form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

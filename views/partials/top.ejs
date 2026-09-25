@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= typeof title !== 'undefined' ? title + ' — Soko la Mtandaoni' : 'Soko la Mtandaoni' %></title>
+<meta name="description" content="Soko la Mtandaoni — jukwaa la biashara mtandaoni linalowaunganisha wauzaji, wanunuzi, na wasafirishaji Tanzania nzima.">
+<link rel="icon" type="image/png" href="/public/img/icon-32.png">
+<link rel="apple-touch-icon" href="/public/img/icon-180.png">
+<link rel="stylesheet" href="/public/css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="<%= currentSeller ? 'theme-' + (currentSeller.theme_color || 'indigo') : (typeof duka !== 'undefined' && duka ? 'theme-' + (duka.theme_color || 'indigo') : '') %>">
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">
+      <img src="/public/img/logo.png" alt="Soko la Mtandaoni">
+      <span>Soko la Mtandaoni<small>NUNUA &middot; UZA &middot; SAFIRISHA</small></span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="/" data-i18n="home" class="<%= path === '/' ? 'active' : '' %>">Nyumbani</a>
+      <a href="/tafuta" data-i18n="search" class="<%= path === '/tafuta' ? 'active' : '' %>">Tafuta Bidhaa</a>
+      <a href="/viwango" data-i18n="levels" class="<%= path === '/viwango' ? 'active' : '' %>">Viwango</a>
+      <a href="/kuhusu" data-i18n="about" class="<%= path === '/kuhusu' ? 'active' : '' %>">Kuhusu</a>
+      <% if (typeof currentSeller !== 'undefined' && currentSeller) { %>
+        <a href="/duka-langu">Duka Langu</a>
+      <% } else if (typeof currentDriver !== 'undefined' && currentDriver) { %>
+        <a href="/safari-yangu">Safari Yangu</a>
+      <% } %>
+    </div>
+    <div class="nav-cta">
+      <select class="preference-select" data-language aria-label="Language"><option value="sw">SW</option><option value="en">EN</option></select>
+      <select class="preference-select" data-currency aria-label="Currency"><option value="TSH">TSH</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+      <%- include('theme-toggle') %>
+      <% if (!(typeof currentSeller !== 'undefined' && currentSeller) && !(typeof currentDriver !== 'undefined' && currentDriver)) { %>
+        <a href="/ingia" data-i18n="login" class="btn btn-ghost btn-sm">Ingia</a>
+        <a href="/jisajili/muuzaji" data-i18n="open" class="btn btn-accent btn-sm">Fungua Duka</a>
+      <% } else { %>
+        <form action="/toka" method="POST" style="display:inline">
+          <button type="submit" class="btn btn-ghost btn-sm">Toka</button>
+        </form>
+      <% } %>
+      <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">&#9776;</button>
+    </div>
+  </div>
+</nav>
+<main>
+<% if (typeof flashSuccess !== 'undefined' && flashSuccess || typeof flashError !== 'undefined' && flashError) { %>
+  <div class="wrap" style="padding-top:20px;">
+    <% if (flashSuccess) { %><div class="alert alert-success"><%= flashSuccess %></div><% } %>
+    <% if (flashError) { %><div class="alert alert-error"><%= flashError %></div><% } %>
+  </div>
+<% } %>

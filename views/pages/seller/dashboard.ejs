@@ -1,0 +1,54 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<h1>Karibu, <%= currentSeller.jina_duka %></h1>
+<p style="margin-bottom:28px;">Hapa ndipo unaposimamia duka lako, bidhaa, na maoni ya wateja.</p>
+
+<div class="stat-cards">
+  <div class="stat-card accent">
+    <div class="n"><%= idadiBidhaa %> / <%= fmtNum(limits.bidhaa) %></div>
+    <div class="l">Bidhaa Zilizoongezwa</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><%= maoniMapya %></div>
+    <div class="l">Maoni Yaliyochapishwa</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><%= currentSeller.subscription_expires_at ? currentSeller.subscription_expires_at.slice(0, 10) : 'Free' %></div>
+    <div class="l">Mwisho wa Subscription</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><%= currentSeller.tier %></div>
+    <div class="l">Kiwango cha Sasa</div>
+  </div>
+  <div class="stat-card">
+    <div class="n"><span class="badge badge-<%= currentSeller.status %>"><%= currentSeller.status %></span></div>
+    <div class="l">Hali ya Duka</div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card" style="padding:24px;">
+    <h3 style="font-size:17px;">Bidhaa Zangu</h3>
+    <p style="font-size:13.5px;">Umetumia bidhaa <%= idadiBidhaa %> kati ya <%= fmtNum(limits.bidhaa) %> zinazoruhusiwa kwa kiwango cha <%= currentSeller.tier %>.</p>
+    <a href="/duka-langu/bidhaa/ongeza" class="btn btn-accent btn-sm">+ Ongeza Bidhaa Mpya</a>
+    <a href="/duka-langu/bidhaa" class="btn btn-outline btn-sm">Ona Bidhaa Zote</a>
+  </div>
+  <div class="card" style="padding:24px;">
+    <h3 style="font-size:17px;">Maombi ya Usafirishaji</h3>
+    <% if (!maombiUsafirishaji.length) { %>
+      <p style="font-size:13.5px;">Bado hakuna maombi ya usafirishaji.</p>
+    <% } else { %>
+      <ul>
+        <% maombiUsafirishaji.forEach(m => { %>
+          <li style="font-size:13.5px; padding:6px 0; border-bottom:1px solid var(--border-soft);">
+            <span class="badge badge-<%= m.status === 'imewasili' ? 'approved' : 'pending' %>"><%= m.status %></span>
+            &nbsp;<%= m.aina %> &middot; <%= m.buyer_name || 'Mnunuzi' %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+    <a href="/duka-langu/usafirishaji" class="btn btn-outline btn-sm">Simamia Usafirishaji</a>
+  </div>
+</div>
+
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,153 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap-narrow">
+    <div class="section-head">
+      <div>
+        <h2>Usafirishaji #<%= item.id %> <span class="badge badge-<%= item.status === 'imewasili' ? 'approved' : 'pending' %>"><%= item.status %></span></h2>
+        <p><%= item.bidhaa_jina || 'Bidhaa' %> kutoka <strong><%= item.jina_duka %></strong> &middot; Aina: <span style="text-transform:capitalize;"><%= item.aina %></span></p>
+      </div>
+    </div>
+
+    <div class="grid grid-3" style="margin-bottom:24px;">
+      <div class="card" style="padding:16px;">
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">MNUNUZI</div>
+        <div class="strong"><%= item.buyer_jina_ref || item.buyer_name || '—' %></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">MUUZAJI</div>
+        <div class="strong"><%= item.jina_duka || '—' %></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">MSAFIRISHAJI</div>
+        <div class="strong"><%= item.driver_jina || 'Bado hajapatikana' %></div>
+      </div>
+    </div>
+
+    <div class="info-row"><div class="k">Kutoka &rarr; Kwenda</div><div class="v"><%= item.eneo_kuchukua || item.jina_duka || '—' %> &rarr; <%= item.eneo_kupeleka || '—' %></div></div>
+    <div class="info-row">
+      <div class="k">Bei ya Usafirishaji</div>
+      <div class="v">
+        <% if (item.gharama_iliyopendekezwa) { %>
+          <strong style="color:var(--gold);"><%= fmtMoney(item.gharama_iliyopendekezwa) %></strong>
+          <% if (item.gharama_imekubaliwa) { %> <span class="badge badge-approved">Imekubaliwa na pande zote</span><% } else { %> <span class="badge badge-pending">Inasubiri kukubaliwa</span><% } %>
+        <% } else { %>Bado hajapendekeza bei<% } %>
+      </div>
+    </div>
+    <div class="card" style="padding:16px; margin-top:18px;">
+      <strong>Escrow ya Malipo</strong>
+      <div class="hint" style="margin:6px 0 10px;">Hali: <%= item.payment_status || 'not_started' %>. Malipo yataachiliwa kwa muuzaji baada ya Delivery Code kuthibitishwa.</div>
+      <% if (item.escrow_amount) { %><div>Kiasi kinachoshikiliwa: <strong><%= fmtMoney(item.escrow_amount) %></strong></div><% } %>
+      <% if (miminiaina === 'mnunuzi' && item.gharama_imekubaliwa && !['held','released'].includes(item.payment_status)) { %>
+        <form action="/usafirishaji/<%= item.id %>/payment" method="POST" style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+          <input type="number" name="amount" min="1" value="<%= item.gharama_iliyopendekezwa || '' %>" placeholder="Kiasi cha TSH" required>
+          <input name="payment_reference" placeholder="Payment reference" required>
+          <button class="btn btn-gold btn-sm">Weka Pending Payment</button>
+        </form>
+      <% } %>
+    </div>
+    <div class="card" style="padding:16px; margin-top:18px;">
+      <strong>Uthibitisho wa Usafirishaji</strong>
+      <div class="hint" style="margin:6px 0 12px;">Hatua: <%= item.verification_status || 'pending_pickup' %>. Code inazuia pickup au delivery kuthibitishwa bila mtu sahihi.</div>
+      <% if (item.pickup_code && (miminiaina === 'muuzaji' || miminiaina === 'mnunuzi')) { %>
+        <div>Code ya kumpa msafirishaji wakati wa kuchukua: <strong><%= item.pickup_code %></strong></div>
+      <% } %>
+      <% if (item.delivery_code && miminiaina === 'mnunuzi') { %>
+        <div>Code ya kumpa msafirishaji wakati wa kukabidhi: <strong><%= item.delivery_code %></strong></div>
+      <% } %>
+      <% if (miminiaina === 'msafirishaji' && item.verification_status !== 'picked_up' && item.verification_status !== 'delivered') { %>
+        <form action="/safari-yangu/safari/<%= item.id %>/thibitisha-kuchukua" method="POST" style="display:flex; gap:8px; margin-top:12px;">
+          <input name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="Code ya pickup" required>
+          <button class="btn btn-accent btn-sm">Thibitisha Pickup</button>
+        </form>
+      <% } %>
+      <% if (miminiaina === 'msafirishaji' && item.verification_status === 'picked_up') { %>
+        <form action="/safari-yangu/safari/<%= item.id %>/thibitisha-kufikisha" method="POST" style="display:flex; gap:8px; margin-top:12px;">
+          <input name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="Code ya delivery" required>
+          <button class="btn btn-accent btn-sm">Thibitisha Delivery</button>
+        </form>
+      <% } %>
+    </div>
+
+    <% if (item.kupeleka_lat && item.kupeleka_lng) { %>
+    <div style="margin: 18px 0;">
+      <div id="rampaUsafirishaji" class="map-display small"></div>
+    </div>
+    <% } %>
+
+    <h3 style="font-size:18px; margin: 30px 0 14px;">Mazungumzo ya Bei</h3>
+    <div class="card" style="padding: 6px 20px; margin-bottom:22px;">
+      <% if (!ujumbe.length) { %>
+        <p style="padding:14px 0;">Bado hakuna ujumbe. Anza mazungumzo hapa chini.</p>
+      <% } else { %>
+        <% ujumbe.forEach(u => { %>
+          <div class="thread-msg">
+            <div class="meta">
+              <strong class="role-<%= u.mtumaji_aina %>"><%= u.mtumaji_jina %></strong>
+              <span>&middot;</span>
+              <span style="text-transform:capitalize;"><%= u.mtumaji_aina %></span>
+              <span>&middot;</span>
+              <span><%= timeAgo(u.created_at) %></span>
+            </div>
+            <p class="txt"><%= u.ujumbe %></p>
+            <% if (u.bei_pendekezwa) { %><span class="price-tag-inline">Pendekezo la bei: <%= fmtMoney(u.bei_pendekezwa) %></span><% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div class="form-card">
+      <form action="/usafirishaji/<%= item.id %>/ujumbe" method="POST">
+        <div class="field">
+          <label>Ujumbe Wako</label>
+          <textarea name="ujumbe" placeholder="Andika ujumbe wako kuhusu bei/muda wa usafirishaji..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Pendekeza Bei Mpya ya Usafirishaji (hiari)</label>
+            <input type="number" name="bei_pendekezwa" min="0" placeholder="TSH">
+          </div>
+          <% if (miminiaina === 'mnunuzi' || miminiaina === 'muuzaji') { %>
+          <div class="field">
+            <label>Au Kubali Bei Iliyopo</label>
+            <label class="radio-pill" style="display:inline-block;">
+              <input type="checkbox" name="kubali_bei" value="1" style="position:static; opacity:1; width:auto; margin-right:6px;">
+              Nakubali bei ya sasa
+            </label>
+          </div>
+          <% } %>
+        </div>
+        <button type="submit" class="btn btn-accent">Tuma</button>
+      </form>
+    </div>
+    <h3 style="font-size:18px; margin:30px 0 14px;">Chat ya Ndani</h3>
+    <div class="card" style="padding:12px 20px; margin-bottom:16px;">
+      <% if (!chat.length) { %><p>Bado hakuna ujumbe wa chat.</p><% } %>
+      <% chat.forEach(c => { %><div class="thread-msg"><div class="meta"><strong><%= c.sender_name %></strong> &middot; <%= c.sender_type %> &middot; <%= timeAgo(c.created_at) %></div><p class="txt"><%= c.message %></p></div><% }) %>
+    </div>
+    <div class="form-card">
+      <form action="/usafirishaji/<%= item.id %>/chat" method="POST">
+        <div class="field"><label>Ujumbe wa ndani</label><textarea name="message" required placeholder="Andika ujumbe wa order hii..."></textarea></div>
+        <button class="btn btn-accent">Tuma Chat</button>
+      </form>
+    </div>
+    <% if (miminiaina === 'mnunuzi') { %>
+      <div class="card" style="padding:16px; margin-top:20px; border-color:var(--danger);">
+        <strong>Fungua Mgogoro</strong>
+        <form action="/usafirishaji/<%= item.id %>/dispute" method="POST" style="margin-top:10px;">
+          <div class="field"><select name="reason" required><option value="wrong_item">Bidhaa si sahihi</option><option value="not_received">Haijafika</option><option value="damaged">Imeharibika</option><option value="other">Nyingine</option></select></div>
+          <div class="field"><textarea name="details" required placeholder="Eleza tatizo..."></textarea></div>
+          <button class="btn btn-danger">Fungua Mgogoro</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<% if (item.kupeleka_lat && item.kupeleka_lng) { %>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/public/js/map.js"></script>
+<script>sokoInitMapDisplay('rampaUsafirishaji', <%= item.kupeleka_lat %>, <%= item.kupeleka_lng %>, 'Eneo la kupeleka bidhaa');</script>
+<% } %>
+
+<%- include('../partials/bottom') %>

@@ -1,0 +1,112 @@
+<%- include('../partials/top') %>
+
+<section class="section" style="padding-top:44px;">
+  <div class="wrap">
+    <div class="section-head" style="display:block; text-align:center;">
+      <h2>Viwango vya Usajili</h2>
+      <p style="margin:8px auto 0; text-align:center;">Anza bure. Boresha unapokua. Hakuna tozo za kila mauzo — unalipa ada ya usajili tu.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <h3 style="font-size:19px; margin-bottom:18px;">Wauzaji (Maduka)</h3>
+    <div class="pricing-grid">
+      <div class="tier-card">
+        <div class="tier-name">FREE</div>
+        <div class="tier-price"><%= fmtMoney(sellerPricing.FREE) %><span>/mwezi</span></div>
+        <ul>
+          <li>Bidhaa 20</li>
+          <li>Picha 2 kwa bidhaa</li>
+          <li>Msingi tu</li>
+        </ul>
+        <a href="/jisajili/muuzaji" class="btn btn-outline btn-block">Anza Bure</a>
+      </div>
+      <div class="tier-card">
+        <div class="tier-name">BRONZE</div>
+        <div class="tier-price"><%= fmtMoney(sellerPricing.BRONZE) %><span>/mwezi</span></div>
+        <ul>
+          <li>Bidhaa 100</li>
+          <li>Picha 5 kwa bidhaa</li>
+          <li>Matangazo ya jukwaa</li>
+          <li>Msaada Saa 24</li>
+          <li>Kuona Maoni</li>
+        </ul>
+        <a href="/jisajili/muuzaji" class="btn btn-outline btn-block">Chagua BRONZE</a>
+      </div>
+      <div class="tier-card featured">
+        <div class="tier-name">SILVER</div>
+        <div class="tier-price"><%= fmtMoney(sellerPricing.SILVER) %><span>/mwezi</span></div>
+        <ul>
+          <li>Bidhaa 300</li>
+          <li>Picha 10 kwa bidhaa</li>
+          <li>Analytics za duka</li>
+          <li>Usafirishaji wa Public Drivers</li>
+          <li>Nembo maalum + Kujibu Maoni</li>
+        </ul>
+        <a href="/jisajili/muuzaji" class="btn btn-gold btn-block">Chagua SILVER</a>
+      </div>
+      <div class="tier-card">
+        <div class="tier-name">GOLD</div>
+        <div class="tier-price"><%= fmtMoney(sellerPricing.GOLD) %><span>/mwezi</span></div>
+        <ul>
+          <li>Bidhaa Isiyo na Kikomo</li>
+          <li>Picha Isiyo na Kikomo</li>
+          <li>API Access</li>
+          <li>Sub-sellers</li>
+          <li>Branding Kamili</li>
+        </ul>
+        <a href="/jisajili/muuzaji" class="btn btn-outline btn-block">Chagua GOLD</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h3 style="font-size:19px; margin-bottom:18px;">Wasafirishaji (Kulingana na Aina ya Gari)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Aina ya Gari</th><th>FREE</th><th>BRONZE</th><th>SILVER</th><th>GOLD</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="strong">Bodaboda</td>
+            <td>Orders 5<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.bodaboda.FREE) %></span></td>
+            <td>Orders 40<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.bodaboda.BRONZE) %></span></td>
+            <td>Orders 150<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.bodaboda.SILVER) %></span></td>
+            <td>Isiyo na Kikomo<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.bodaboda.GOLD) %></span></td>
+          </tr>
+          <tr>
+            <td class="strong">Gari Ndogo</td>
+            <td>Orders 8<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_ndogo.FREE) %></span></td>
+            <td>Orders 60<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_ndogo.BRONZE) %></span></td>
+            <td>Orders 250<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_ndogo.SILVER) %></span></td>
+            <td>Isiyo na Kikomo<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_ndogo.GOLD) %></span></td>
+          </tr>
+          <tr>
+            <td class="strong">Gari Kubwa</td>
+            <td>Orders 10<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_kubwa.FREE) %></span></td>
+            <td>Orders 80<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_kubwa.BRONZE) %></span></td>
+            <td>Orders 350<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_kubwa.SILVER) %></span></td>
+            <td>Isiyo na Kikomo<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.gari_kubwa.GOLD) %></span></td>
+          </tr>
+          <tr>
+            <td class="strong">Lori</td>
+            <td>Orders 3<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.lori.FREE) %></span></td>
+            <td>Orders 30<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.lori.BRONZE) %></span></td>
+            <td>Orders 150<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.lori.SILVER) %></span></td>
+            <td>Isiyo na Kikomo<br><span style="color:var(--text-faint)"><%= fmtMoney(driverPricing.lori.GOLD) %></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align:center; margin-top:26px;">
+      <a href="/jisajili/mwasafirishaji" class="btn btn-accent">Jisajili Kuwa Mwasafirishaji</a>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

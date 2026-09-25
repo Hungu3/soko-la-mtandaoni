@@ -1,0 +1,207 @@
+<%- include('../partials/top') %>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow-mark">Jukwaa la Kwanza la Aina Yake Tanzania</div>
+      <h1>Soko la Mtandaoni ni pahali panapokutana wauzaji na wanunuzi.</h1>
+      <p class="lede">Fungua duka lako bure, orodhesha bidhaa zako, na uwafikie wanunuzi wa Tanzania nzima. Wanunuzi wanawasiliana nawe moja kwa moja — hakuna makato ya mauzo.</p>
+      <div class="hero-actions">
+        <a href="/jisajili/muuzaji" class="btn btn-accent">Fungua Duka Lako — Bure</a>
+        <a href="/tafuta" class="btn btn-outline">Tafuta Bidhaa</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="num"><%= maduka.length %>+</div><div class="lbl">Maduka Yaliyosajiliwa</div></div>
+        <div><div class="num">0 TSH</div><div class="lbl">Kuanza Kuuza</div></div>
+        <div><div class="num">3</div><div class="lbl">Aina za Usafirishaji</div></div>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img src="/public/img/logo.png" class="hero-mark" alt="">
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="searchbar" style="max-width:640px;">
+      <form action="/tafuta" method="GET" style="display:flex; width:100%;">
+        <input type="text" name="q" placeholder="Tafuta bidhaa, kategoria, au duka...">
+        <select name="location" aria-label="Mkoa"><option value="">Mkoa</option><option>Dar es Salaam</option><option>Arusha</option><option>Mwanza</option><option>Morogoro</option><option>Tanga</option></select>
+        <select name="kategoria" aria-label="Kategoria"><option value="">Kategoria</option><option>Nguo</option><option>Mazao</option><option>Vifaa</option><option>Vyakula</option></select>
+        <button type="submit">Tafuta</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<% if (ads.length || matangazoKawaida.length) { %>
+<section class="section" style="padding-bottom:0;">
+  <div class="wrap layout-with-sidebar">
+    <div>
+      <div class="section-head">
+        <div>
+          <h2>Maduka Yaliyoidhinishwa</h2>
+          <p>Vinjari maduka kutoka kwa wauzaji halisi kote Tanzania.</p>
+        </div>
+        <a href="/tafuta" class="btn btn-outline btn-sm">Ona Yote</a>
+      </div>
+      <% if (!maduka.length) { %>
+        <div class="empty"><div class="mark">&#128722;</div>Bado hakuna maduka yaliyoidhinishwa. Kuwa wa kwanza <a href="/jisajili/muuzaji" style="color:var(--indigo)">kufungua duka</a>!</div>
+      <% } else { %>
+      <div class="grid grid-3">
+        <% maduka.forEach(d => { %>
+          <a href="/duka/<%= d.id %>" class="card shop-card">
+            <div class="thumb" style="<% if (d.picha_duka) { %>background-image:url('/uploads/<%= d.picha_duka %>')<% } %>">
+              <% if (!d.picha_duka) { %><span class="store-placeholder" aria-label="Duka"><span>&#127978;</span></span><% } %>
+            </div>
+            <div class="body">
+              <div class="shop-name"><%= d.jina_duka %></div>
+              <div class="shop-meta">
+                <span class="badge badge-<%= d.tier.toLowerCase() %>"><%= d.tier %></span>
+                <span><%= d.location || 'Tanzania' %></span>
+              </div>
+              <p style="font-size:13px; margin:0;"><%= d.aina_bidhaa %></p>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+
+    <aside class="sidebar-col">
+      <% if (ads.length) { %>
+      <div class="ads-panel">
+        <h5>&#128276; Ads (Yamelipiwa)</h5>
+        <% ads.forEach(a => { %>
+          <a href="<%= a.kiungo || '#' %>" class="ad-card" target="<%= a.kiungo ? '_blank' : '_self' %>">
+            <div class="ad-media">
+              <span class="ad-tag">AD</span>
+              <% if (a.muundo === 'video' && a.video) { %>
+                <video src="<%= a.video %>" muted loop autoplay playsinline></video>
+              <% } else if (a.picha) { %>
+                <img src="/uploads/<%= a.picha %>" alt="<%= a.kichwa %>" style="width:100%; height:100%; object-fit:cover;">
+              <% } else { %>Ad<% } %>
+            </div>
+            <div class="ad-body">
+              <div class="ad-title"><%= a.kichwa %></div>
+              <% if (a.maelezo) { %><p class="ad-desc"><%= a.maelezo %></p><% } %>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <% if (matangazoKawaida.length) { %>
+      <div class="ads-panel">
+        <h5>&#128226; Matangazo</h5>
+        <% matangazoKawaida.forEach(m => { %>
+          <a href="<%= m.kiungo || '#' %>" class="announce-card" target="<%= m.kiungo ? '_blank' : '_self' %>">
+            <div class="an-media">
+              <% if (m.muundo === 'video' && m.video) { %>
+                <video src="<%= m.video %>" muted loop autoplay playsinline></video>
+              <% } else if (m.picha) { %>
+                <img src="/uploads/<%= m.picha %>" alt="<%= m.kichwa %>" style="width:100%; height:100%; object-fit:cover;">
+              <% } else { %>&#128276;<% } %>
+            </div>
+            <div class="an-body">
+              <div class="an-title"><%= m.kichwa %></div>
+              <% if (m.maelezo) { %><p class="an-desc"><%= m.maelezo %></p><% } %>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+      <% } %>
+    </aside>
+  </div>
+</section>
+<% } else { %>
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Maduka Yaliyoidhinishwa</h2>
+        <p>Vinjari maduka kutoka kwa wauzaji halisi kote Tanzania.</p>
+      </div>
+      <a href="/tafuta" class="btn btn-outline btn-sm">Ona Yote</a>
+    </div>
+    <% if (!maduka.length) { %>
+      <div class="empty"><div class="mark">&#128722;</div>Bado hakuna maduka yaliyoidhinishwa. Kuwa wa kwanza <a href="/jisajili/muuzaji" style="color:var(--indigo)">kufungua duka</a>!</div>
+    <% } else { %>
+    <div class="grid grid-4">
+      <% maduka.forEach(d => { %>
+        <a href="/duka/<%= d.id %>" class="card shop-card">
+          <div class="thumb" style="<% if (d.picha_duka) { %>background-image:url('/uploads/<%= d.picha_duka %>')<% } %>">
+            <% if (!d.picha_duka) { %><span class="store-placeholder" aria-label="Duka"><span>&#127978;</span></span><% } %>
+          </div>
+          <div class="body">
+            <div class="shop-name"><%= d.jina_duka %></div>
+            <div class="shop-meta">
+              <span class="badge badge-<%= d.tier.toLowerCase() %>"><%= d.tier %></span>
+              <span><%= d.location || 'Tanzania' %></span>
+            </div>
+            <p style="font-size:13px; margin:0;"><%= d.aina_bidhaa %></p>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+<% } %>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Bidhaa Mpya Zilizoongezwa</h2>
+        <p>Bidhaa za hivi karibuni kutoka kwa maduka yetu.</p>
+      </div>
+    </div>
+    <% if (!bidhaaMpya.length) { %>
+      <div class="empty"><div class="mark">&#128230;</div>Bado hakuna bidhaa zilizoongezwa.</div>
+    <% } else { %>
+    <div class="grid grid-4">
+      <% bidhaaMpya.forEach(p => { %>
+        <a href="/bidhaa/<%= p.id %>" class="card product-card">
+          <div class="thumb" style="<% const ph = firstPhoto(p.picha); if (ph) { %>background-image:url('<%= ph %>')<% } %>">
+            <% if (!firstPhoto(p.picha)) { %><%= p.jina %><% } %>
+          </div>
+          <div class="body">
+            <div class="p-name"><%= p.jina %></div>
+            <div class="p-shop"><%= p.jina_duka %> &middot; <%= p.location || '' %></div>
+            <div class="p-price"><%= fmtMoney(p.bei) %></div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Jinsi Inavyofanya Kazi</h2></div>
+    </div>
+    <div class="grid grid-3">
+      <div class="card" style="padding:26px;">
+        <h3 style="font-size:18px;">Kwa Wauzaji</h3>
+        <p style="font-size:13.5px;">Jisajili bure, ongeza bidhaa hadi 20, na uanze kuuza. Boresha kiwango unapohitaji nafasi zaidi.</p>
+        <a href="/jisajili/muuzaji" class="btn btn-outline btn-sm">Fungua Duka</a>
+      </div>
+      <div class="card" style="padding:26px;">
+        <h3 style="font-size:18px;">Kwa Wasafirishaji</h3>
+        <p style="font-size:13.5px;">Jisajili gari lako, pokea order kutoka kwa jukwaa, na upate kipato cha ziada.</p>
+        <a href="/jisajili/mwasafirishaji" class="btn btn-outline btn-sm">Jisajili Kusafirisha</a>
+      </div>
+      <div class="card" style="padding:26px;">
+        <h3 style="font-size:18px;">Kwa Wanunuzi</h3>
+        <p style="font-size:13.5px;">Tafuta bidhaa, wasiliana na muuzaji moja kwa moja, na ulipe kwa njia unayoipenda.</p>
+        <a href="/tafuta" class="btn btn-outline btn-sm">Anza Kununua</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

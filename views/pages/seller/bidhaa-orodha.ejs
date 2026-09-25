@@ -1,0 +1,39 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+  <div>
+    <h1 style="margin-bottom:4px;">Bidhaa Zangu</h1>
+    <p style="margin:0;"><%= bidhaa.length %> / <%= fmtNum(limits.bidhaa) %> zimetumika</p>
+  </div>
+  <a href="/duka-langu/bidhaa/ongeza" class="btn btn-accent">+ Ongeza Bidhaa</a>
+</div>
+
+<% if (!bidhaa.length) { %>
+  <div class="empty"><div class="mark">&#128230;</div>Bado hujaongeza bidhaa yoyote.<br><br><a href="/duka-langu/bidhaa/ongeza" class="btn btn-accent btn-sm">Ongeza Bidhaa ya Kwanza</a></div>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Bidhaa</th><th>Kategoria</th><th>Bei</th><th>Idadi</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <tbody>
+      <% bidhaa.forEach(p => { %>
+      <tr>
+        <td class="strong"><%= p.jina %></td>
+        <td><%= p.kategoria || '—' %></td>
+        <td><%= fmtMoney(p.bei) %></td>
+        <td><%= p.idadi %></td>
+        <td><span class="badge <%= p.hali === 'ipo' ? 'badge-approved' : 'badge-rejected' %>"><%= p.hali === 'ipo' ? 'Ipo' : 'Imeuzwa' %></span></td>
+        <td class="row-actions">
+          <a href="/bidhaa/<%= p.id %>" class="btn btn-ghost btn-sm">Ona</a>
+          <a href="/duka-langu/bidhaa/<%= p.id %>/hariri" class="btn btn-outline btn-sm">Hariri</a>
+          <form action="/duka-langu/bidhaa/<%= p.id %>/futa" method="POST" onsubmit="return confirm('Una uhakika unataka kufuta bidhaa hii?')">
+            <button type="submit" class="btn btn-danger btn-sm">Futa</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<%- include('../../partials/dash-bottom') %>

@@ -1,0 +1,62 @@
+<%- include('../../partials/dash-top-seller') %>
+
+<h1>Boresha Duka Lako</h1>
+<p style="margin-bottom:10px;">Kiwango chako cha sasa: <span class="badge badge-<%= seller.tier.toLowerCase() %>"><%= seller.tier %></span></p>
+<% if (seller.subscription_expires_at) { %>
+  <% if (seller.renewal_prompted) { %>
+    <div class="alert alert-error" style="margin-bottom:20px;">Subscription yako imeisha. Ukiendelea, lipia tena hapa chini; usipoendelea, uko Free na bidhaa 20 tu ndizo online.</div>
+  <% } else { %>
+    <p class="hint" style="margin-bottom:28px;">Subscription inaisha: <strong><%= seller.subscription_expires_at.slice(0, 10) %></strong>. Baada ya hapo mfumo utaweka bidhaa za free-limit online.</p>
+  <% } %>
+<% } else { %><p class="hint" style="margin-bottom:28px;">Uko kwenye Free. Bidhaa 20 za hivi karibuni ndizo zitakazoonekana online.</p><% } %>
+
+<div class="pricing-grid" style="margin-bottom:36px;">
+  <% ['BRONZE','SILVER','GOLD'].forEach(function(tier){ %>
+    <div class="tier-card <%= tier === 'SILVER' ? 'featured' : '' %>">
+      <div class="tier-name"><%= tier %></div>
+      <div class="tier-price"><%= fmtMoney(pricing[tier]) %><span>/mwezi</span></div>
+      <% if (currentSeller.tier === tier) { %>
+        <button class="btn btn-outline btn-block" disabled>Kiwango Chako cha Sasa</button>
+      <% } else { %>
+        <form action="/duka-langu/upgrade" method="POST">
+          <input type="hidden" name="kiwango" value="<%= tier %>">
+          <div class="field" style="margin-bottom:10px;">
+            <select name="njia_malipo" required>
+              <option value="">Chagua njia ya malipo</option>
+              <option value="M-Pesa">M-Pesa</option><option value="T-Pesa">T-Pesa</option>
+              <option value="Airtel Money">Airtel Money</option><option value="Benki">Benki</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <input name="payment_ref" required placeholder="Namba ya muamala">
+            <div class="hint">Baada ya malipo, weka reference ya muamala. Hakuna approval ya Admin.</div>
+          </div>
+          <button type="submit" class="btn <%= tier === 'SILVER' ? 'btn-gold' : 'btn-accent' %> btn-block">Lipa na Boresha</button>
+        </form>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+
+<h3 style="font-size:17px; margin-bottom:14px;">Historia ya Maombi</h3>
+<% if (!requests.length) { %>
+  <p>Bado hujaomba kuboresha kiwango.</p>
+<% } else { %>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tarehe</th><th>Kiwango</th><th>Hali</th></tr></thead>
+    <tbody>
+      <% requests.forEach(r => { %>
+      <tr>
+        <td><%= timeAgo(r.created_at) %></td>
+        <td class="strong"><%= r.kiwango_kilichoombwa %></td>
+        <td><span class="badge badge-<%= r.status %>"><%= r.status %></span></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<p class="hint" style="margin-top:16px;">Malipo ya kila subscription ni ya siku 30. Ukiendelea, lipia tena kabla au baada ya expiry; usipoendelea, mfumo utarudisha Free na kuchagua bidhaa 20 za online.</p>
+
+<%- include('../../partials/dash-bottom') %>
