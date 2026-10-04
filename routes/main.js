@@ -287,6 +287,21 @@ router.get('/kuhusu', (req, res) => {
   res.render('pages/kuhusu', { title: 'Kuhusu Soko la Mtandaoni' });
 });
 
+router.get('/mwongozo', (req, res) => {
+  const tutorials = [
+    { title: 'Mwongozo wa Mnunuzi', description: 'Kutafuta bidhaa, kuwasiliana na muuzaji na kuomba usafirishaji.', videoId: process.env.SOKO_TUTORIAL_BUYER },
+    { title: 'Mwongozo wa Muuzaji', description: 'Kufungua duka, kuweka eneo, kusimamia bidhaa na kushughulikia oda.', videoId: process.env.SOKO_TUTORIAL_SELLER },
+    { title: 'Mwongozo wa Mwasafirishaji', description: 'Kukamilisha usajili, kupokea safari na kuthibitisha pickup na delivery.', videoId: process.env.SOKO_TUTORIAL_DRIVER },
+    { title: 'Mwongozo wa Msimamizi', description: 'Kusimamia maombi, matangazo, malalamiko na kazi za kila siku.', videoId: process.env.SOKO_TUTORIAL_ADMIN },
+  ].map(tutorial => ({
+    ...tutorial,
+    embedUrl: /^[A-Za-z0-9_-]{11}$/.test(tutorial.videoId || '')
+      ? `https://www.youtube-nocookie.com/embed/${tutorial.videoId}`
+      : null,
+  }));
+  res.render('pages/mwongozo', { title: 'Video za Mwongozo', tutorials });
+});
+
 router.get('/privacy', (req, res) => {
   res.render('pages/privacy', { title: 'Privacy Policy' });
 });

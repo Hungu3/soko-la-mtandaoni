@@ -22,53 +22,54 @@
         <div class="field-row">
           <div class="field">
             <label>Jina Kamili *</label>
-            <input type="text" name="jina" required>
+            <input type="text" name="jina" required value="<%= formData.jina || '' %>" class="<%= missingFields.includes('jina') ? 'input-invalid' : '' %>">
           </div>
           <div class="field">
             <label>Namba ya Simu *</label>
-            <input type="tel" name="simu" required placeholder="07XXXXXXXX">
+            <input type="tel" name="simu" required value="<%= formData.simu || '' %>" class="<%= missingFields.includes('simu') ? 'input-invalid' : '' %>" placeholder="07XXXXXXXX">
           </div>
         </div>
         <div class="field">
           <label>Barua Pepe *</label>
-          <input type="email" name="email" required>
+          <input type="email" name="email" required value="<%= formData.email || '' %>" class="<%= missingFields.includes('email') ? 'input-invalid' : '' %>">
         </div>
         <div class="field">
           <label>Aina ya Gari *</label>
           <div class="radio-group">
-            <label class="radio-pill"><input type="radio" name="aina_gari" value="bodaboda" checked><span>Bodaboda</span></label>
-            <label class="radio-pill"><input type="radio" name="aina_gari" value="gari_ndogo"><span>Gari Ndogo</span></label>
-            <label class="radio-pill"><input type="radio" name="aina_gari" value="gari_kubwa"><span>Gari Kubwa</span></label>
-            <label class="radio-pill"><input type="radio" name="aina_gari" value="lori"><span>Lori</span></label>
+            <label class="radio-pill"><input type="radio" name="aina_gari" value="bodaboda" <%= (formData.aina_gari || 'bodaboda') === 'bodaboda' ? 'checked' : '' %>><span>Bodaboda</span></label>
+            <label class="radio-pill"><input type="radio" name="aina_gari" value="gari_ndogo" <%= formData.aina_gari === 'gari_ndogo' ? 'checked' : '' %>><span>Gari Ndogo</span></label>
+            <label class="radio-pill"><input type="radio" name="aina_gari" value="gari_kubwa" <%= formData.aina_gari === 'gari_kubwa' ? 'checked' : '' %>><span>Gari Kubwa</span></label>
+            <label class="radio-pill"><input type="radio" name="aina_gari" value="lori" <%= formData.aina_gari === 'lori' ? 'checked' : '' %>><span>Lori</span></label>
           </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label>Namba ya Usajili (License Plate) *</label>
-            <input type="text" name="namba_usajili" required placeholder="Mfano: T123 ABC">
+            <input type="text" name="namba_usajili" required value="<%= formData.namba_usajili || '' %>" class="<%= missingFields.includes('namba_usajili') ? 'input-invalid' : '' %>" placeholder="Mfano: T123 ABC">
           </div>
           <div class="field">
             <label>Namba ya Leseni ya Udereva *</label>
-            <input type="text" name="leseni" required>
+            <input type="text" name="leseni" required value="<%= formData.leseni || '' %>" class="<%= missingFields.includes('leseni') ? 'input-invalid' : '' %>">
           </div>
         </div>
         <div class="field">
           <label>Eneo la Huduma *</label>
-          <input type="text" name="eneo_huduma" required placeholder="Maeneo unayosafirisha, mfano: Kariakoo, Ilala">
+          <input type="text" name="eneo_huduma" required value="<%= formData.eneo_huduma || '' %>" data-google-map-input class="<%= missingFields.includes('eneo_huduma') ? 'input-invalid' : '' %>" placeholder="Maeneo unayosafirisha, mfano: Kariakoo, Ilala">
+          <a class="btn btn-outline btn-sm google-map-link" data-google-map-link target="_blank" rel="noopener noreferrer" <%= formData.eneo_huduma ? '' : 'hidden' %>>Fungua eneo kwenye Google Maps</a>
         </div>
         <div class="field-row">
           <div class="field">
             <label>Nakala ya Kitambulisho *</label>
-            <input type="file" name="kitambulisho" accept="image/*,application/pdf" required>
+            <input type="file" name="kitambulisho" accept="image/*,application/pdf" required class="<%= missingFields.includes('kitambulisho') ? 'input-invalid' : '' %>">
           </div>
           <div class="field">
             <label>Nakala ya Leseni ya Udereva *</label>
-            <input type="file" name="leseni_faili" accept="image/*,application/pdf" required>
+            <input type="file" name="leseni_faili" accept="image/*,application/pdf" required class="<%= missingFields.includes('leseni_faili') ? 'input-invalid' : '' %>">
           </div>
         </div>
         <div class="field">
           <label>Password *</label>
-          <input type="password" name="password" required minlength="6">
+          <div class="password-control"><input type="password" name="password" required minlength="6" autocomplete="new-password" class="<%= missingFields.includes('password') ? 'input-invalid' : '' %>"><button type="button" class="btn btn-ghost btn-sm" data-password-toggle aria-label="Onyesha password">Onyesha</button></div>
         </div>
         <p class="hint" style="margin-bottom:14px;">Taarifa zote zilizowekwa alama ya * ni za lazima — hii ni kwa ajili ya usalama wa jukwaa na wanunuzi.</p>
         <button type="submit" class="btn btn-accent btn-block">Tuma Ombi la Usajili</button>
@@ -77,5 +78,6 @@
     <p class="center-note">Tayari una akaunti? <a href="/ingia?aina=mwasafirishaji">Ingia hapa</a></p>
   </div>
 </div>
+<script src="/public/js/forms.js"></script>
 </body>
 </html>

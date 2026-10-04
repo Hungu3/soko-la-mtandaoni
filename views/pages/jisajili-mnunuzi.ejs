@@ -21,23 +21,24 @@
       <form action="/jisajili/mnunuzi" method="POST">
         <div class="field">
           <label>Jina Kamili *</label>
-          <input type="text" name="jina" required>
+          <input type="text" name="jina" required value="<%= formData.jina || '' %>" class="<%= missingFields.includes('jina') ? 'input-invalid' : '' %>">
         </div>
         <div class="field">
           <label>Namba ya Simu *</label>
-          <input type="tel" name="simu" required placeholder="07XXXXXXXX">
+          <input type="tel" name="simu" required value="<%= formData.simu || '' %>" class="<%= missingFields.includes('simu') ? 'input-invalid' : '' %>" placeholder="07XXXXXXXX">
         </div>
         <div class="field">
           <label>Barua Pepe *</label>
-          <input type="email" name="email" required>
+          <input type="email" name="email" required value="<%= formData.email || '' %>" class="<%= missingFields.includes('email') ? 'input-invalid' : '' %>">
         </div>
         <div class="field">
           <label>Anwani (kwa ajili ya usafirishaji) *</label>
-          <input type="text" name="anwani" required placeholder="Mtaa, Mji">
+          <input type="text" name="anwani" required value="<%= formData.anwani || '' %>" data-google-map-input class="<%= missingFields.includes('anwani') ? 'input-invalid' : '' %>" placeholder="Mtaa, Mji">
+          <a class="btn btn-outline btn-sm google-map-link" data-google-map-link target="_blank" rel="noopener noreferrer" <%= formData.anwani ? '' : 'hidden' %>>Fungua anwani kwenye Google Maps</a>
         </div>
         <div class="field">
           <label>Password *</label>
-          <input type="password" name="password" required minlength="6">
+          <div class="password-control"><input type="password" name="password" required minlength="6" autocomplete="new-password" class="<%= missingFields.includes('password') ? 'input-invalid' : '' %>"><button type="button" class="btn btn-ghost btn-sm" data-password-toggle aria-label="Onyesha password">Onyesha</button></div>
         </div>
         <p class="hint" style="margin-bottom:14px;">Taarifa zote ni za lazima ili uweze kuomba usafirishaji wa Public/Protected na kuunganishwa na msafirishaji kwa usalama.</p>
         <button type="submit" class="btn btn-accent btn-block">Jisajili</button>
@@ -46,5 +47,6 @@
     <p class="center-note">Tayari una akaunti? <a href="/ingia?aina=mnunuzi">Ingia hapa</a></p>
   </div>
 </div>
+<script src="/public/js/forms.js"></script>
 </body>
 </html>

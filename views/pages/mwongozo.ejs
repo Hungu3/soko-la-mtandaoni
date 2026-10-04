@@ -1,0 +1,25 @@
+<%- include('../partials/top') %>
+
+<section class="section">
+  <div class="wrap-narrow">
+    <h1>Video za Mwongozo</h1>
+    <p>Chagua mwongozo wa nafasi yako kwenye Soko la Mtandaoni.</p>
+    <div class="tutorial-grid">
+      <% tutorials.forEach(tutorial => { %>
+        <article class="tutorial-item">
+          <h2><%= tutorial.title %></h2>
+          <p><%= tutorial.description %></p>
+          <% if (tutorial.embedUrl) { %>
+            <div class="tutorial-frame">
+              <iframe src="<%= tutorial.embedUrl %>" title="<%= tutorial.title %>" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+          <% } else { %>
+            <div class="tutorial-pending">Video ya mwongozo itaongezwa hivi karibuni.</div>
+          <% } %>
+        </article>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/bottom') %>

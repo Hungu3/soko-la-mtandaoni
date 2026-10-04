@@ -20,58 +20,59 @@
 
     <div class="form-card">
       <form action="/jisajili/muuzaji" method="POST" enctype="multipart/form-data">
-        <div class="field">
+        <div class="field <%= missingFields.includes('latitude') ? 'field-invalid' : '' %>">
           <label>Jina la Duka *</label>
-          <input type="text" name="jina_duka" required placeholder="Mfano: Duka la Mama Amina">
+          <input type="text" name="jina_duka" required value="<%= formData.jina_duka || '' %>" class="<%= missingFields.includes('jina_duka') ? 'input-invalid' : '' %>" placeholder="Mfano: Duka la Mama Amina">
         </div>
         <div class="field-row">
           <div class="field">
             <label>Aina ya Bidhaa *</label>
-            <input type="text" name="aina_bidhaa" required placeholder="Mazao, Nguo, Vifaa, n.k.">
+            <input type="text" name="aina_bidhaa" required value="<%= formData.aina_bidhaa || '' %>" class="<%= missingFields.includes('aina_bidhaa') ? 'input-invalid' : '' %>" placeholder="Mazao, Nguo, Vifaa, n.k.">
           </div>
           <div class="field">
             <label>Namba ya Simu *</label>
-            <input type="tel" name="simu" required placeholder="07XXXXXXXX">
+            <input type="tel" name="simu" required value="<%= formData.simu || '' %>" class="<%= missingFields.includes('simu') ? 'input-invalid' : '' %>" placeholder="07XXXXXXXX">
           </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label>Barua Pepe *</label>
-            <input type="email" name="email" required>
+            <input type="email" name="email" required value="<%= formData.email || '' %>" class="<%= missingFields.includes('email') ? 'input-invalid' : '' %>">
           </div>
           <div class="field">
             <label>Location (Mtaa/Mji) *</label>
-            <input type="text" name="location" required placeholder="Mfano: Kariakoo, Dar es Salaam">
+            <input type="text" name="location" required value="<%= formData.location || '' %>" data-google-map-input class="<%= missingFields.includes('location') ? 'input-invalid' : '' %>" placeholder="Mfano: Kariakoo, Dar es Salaam">
+            <a class="btn btn-outline btn-sm google-map-link" data-google-map-link target="_blank" rel="noopener noreferrer" <%= formData.location ? '' : 'hidden' %>>Fungua eneo kwenye Google Maps</a>
           </div>
         </div>
         <div class="field">
           <label>Weka Eneo la Duka kwenye Ramani *</label>
           <div id="rampaDuka" class="map-picker"></div>
           <div class="map-hint">Bonyeza mahali kwenye ramani panapoonyesha eneo la duka lako. Ramani itajaribu kutumia eneo lako la sasa kama utaruhusu.</div>
-          <input type="hidden" name="latitude" id="latitude" required>
-          <input type="hidden" name="longitude" id="longitude" required>
+          <input type="hidden" name="latitude" id="latitude" value="<%= formData.latitude || '' %>">
+          <input type="hidden" name="longitude" id="longitude" value="<%= formData.longitude || '' %>">
         </div>
         <div class="field">
           <label>Maelezo Mafupi ya Duka *</label>
-          <textarea name="maelezo_duka" required placeholder="Tueleze kidogo kuhusu biashara yako..."></textarea>
+          <textarea name="maelezo_duka" required class="<%= missingFields.includes('maelezo_duka') ? 'input-invalid' : '' %>" placeholder="Tueleze kidogo kuhusu biashara yako..."><%= formData.maelezo_duka || '' %></textarea>
         </div>
         <div class="field">
           <label>Siku na Muda wa Kufanya Biashara *</label>
-          <input type="text" name="siku_kufunguliwa" required placeholder="Mfano: Jumatatu - Jumamosi, 8:00 - 18:00">
+          <input type="text" name="siku_kufunguliwa" required value="<%= formData.siku_kufunguliwa || '' %>" class="<%= missingFields.includes('siku_kufunguliwa') ? 'input-invalid' : '' %>" placeholder="Mfano: Jumatatu - Jumamosi, 8:00 - 18:00">
         </div>
         <div class="field-row">
           <div class="field">
             <label>Picha ya Duka / Nembo *</label>
-            <input type="file" name="picha_duka" accept="image/*" required>
+            <input type="file" name="picha_duka" accept="image/*" required class="<%= missingFields.includes('picha_duka') ? 'input-invalid' : '' %>">
           </div>
           <div class="field">
             <label>Nakala ya Kitambulisho *</label>
-            <input type="file" name="kitambulisho" accept="image/*,application/pdf" required>
+            <input type="file" name="kitambulisho" accept="image/*,application/pdf" required class="<%= missingFields.includes('kitambulisho') ? 'input-invalid' : '' %>">
           </div>
         </div>
         <div class="field">
           <label>Password *</label>
-          <input type="password" name="password" required minlength="6">
+          <div class="password-control"><input type="password" name="password" required minlength="6" autocomplete="new-password" class="<%= missingFields.includes('password') ? 'input-invalid' : '' %>"><button type="button" class="btn btn-ghost btn-sm" data-password-toggle aria-label="Onyesha password">Onyesha</button></div>
           <div class="hint">Angalau herufi/tarakimu 6.</div>
         </div>
         <p class="hint" style="margin-bottom:14px;">Taarifa zote zilizowekwa alama ya * ni za lazima — hii ni kwa ajili ya usalama wa jukwaa na wanunuzi wako.</p>
@@ -85,5 +86,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/public/js/map.js"></script>
 <script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude');</script>
+<script src="/public/js/forms.js"></script>
 </body>
 </html>

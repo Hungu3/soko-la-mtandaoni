@@ -7,7 +7,7 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const methodOverride = require('method-override');
 
-require('./db/db'); // hakikisha database & schema vimeandaliwa
+const { db } = require('./db/db'); // hakikisha database & schema vimeandaliwa
 require('./db/seed'); // tengeneza admin & demo data ikiwa hazipo
 
 const mainRoutes = require('./routes/main');
@@ -22,10 +22,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.locals.currentYear = new Date().getFullYear();
 
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = path.resolve(process.env.SOKO_DATA_DIR || path.join(__dirname, 'data'));
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const SESSIONS_DIR = path.join(DATA_DIR, 'sessions');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR, { recursive: true });
+const UPLOAD_DIR = path.resolve(process.env.SOKO_UPLOAD_DIR || path.join(__dirname, 'public', 'uploads'));
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // ---------- View Engine ----------
 app.set('view engine', 'ejs');
@@ -64,7 +66,7 @@ app.use(express.json());
 app.use(rateLimit({ max: 100 }));
 app.use(methodOverride('_method'));
 app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 app.use(session({
   store: new FileStore({ path: path.join(DATA_DIR, 'sessions'), logFn: function(){} }),
@@ -92,6 +94,16 @@ app.use((req, res, next) => {
   }
   req.session.lastActivity = now;
   next();
+});
+
+app.get('/health', (req, res) => {
+  try {
+    db.prepare('SELECT 1').get();
+    res.status(200).json({ status: 'ok' });
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    res.status(503).json({ status: 'unavailable' });
+  }
 });
 
 // ---------- Taarifa za jumla kwa kila ukurasa (locals) ----------

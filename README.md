@@ -577,3 +577,16 @@ Cloudflare haiwezi kuanzishwa kutoka kwenye code bila domain/DNS access. Baada y
 - Staff haoni menu ya Masuala ya Pesa, Staff management, Migogoro na Refunds, wala Audit Logs.
 - Owner anaona `/admin/logs`, inayorekodi actions za Admin/Staff bila kuhifadhi password au payment reference.
 - Driver hawezi kuidhinishwa kubeba mizigo mpaka KYC yake iwe `verified`.
+
+## 21. Render: Hifadhi Endelevu na Ufuatiliaji
+
+Programu inaweza kutumia Render Persistent Disk kwa SQLite, sessions na uploads. Kwenye Render:
+
+1. Ambatisha Persistent Disk kwenye huduma ya web kwenye mount path `/var/data`.
+2. Weka environment variables `SOKO_DATA_DIR=/var/data` na `SOKO_UPLOAD_DIR=/var/data/uploads`.
+3. Weka Health Check Path kuwa `/health`; endpoint hii hurudisha `200` tu database inapojibu.
+4. Kabla ya kubadilisha path, hifadhi database na uploads zilizopo kisha uzihamishe kwenye disk. Disk mpya inaanza tupu; usifute data ya zamani kabla ya kuhakiki backup.
+
+> **Muhimu:** Render free instances hazina persistent disk. Kwa data isiyopotea baada ya restart/redeploy, tumia plan inayoruhusu Persistent Disk au hamishia database na uploads kwenye huduma za persistent zinazofaa. `SOKO_DATA_DIR` na `SOKO_UPLOAD_DIR` zikikosekana, app hutumia `data/` na `public/uploads/` za kawaida.
+
+Video za mwongozo ziko kwenye `/mwongozo`. Weka YouTube video IDs (si URL nzima) kwenye Render Environment kwa `SOKO_TUTORIAL_BUYER`, `SOKO_TUTORIAL_SELLER`, `SOKO_TUTORIAL_DRIVER` na `SOKO_TUTORIAL_ADMIN`; ukurasa hutumia embed ya faragha ya YouTube. Hakikisha video zimewekwa public au unlisted kabla ya kuweka IDs.

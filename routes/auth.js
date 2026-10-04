@@ -2,34 +2,57 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 const { db } = require('../db/db');
 const upload = require('../middleware/upload');
 
+function renderRegistrationError(req, res, view, title, missingFields, message) {
+  const formData = { ...req.body };
+  delete formData.password;
+  delete formData.password_confirm;
+  for (const files of Object.values(req.files || {})) {
+    for (const file of files) fs.unlink(file.path, () => {});
+  }
+  return res.status(400).render(view, {
+    title,
+    flashError: message,
+    formData,
+    missingFields,
+  });
+}
+
+function missingValues(values) {
+  return Object.entries(values)
+    .filter(([, value]) => !String(value || '').trim())
+    .map(([field]) => field);
+}
+
 // =================== USAJILI WA MUUZAJI ===================
 router.get('/jisajili/muuzaji', (req, res) => {
-  res.render('pages/jisajili-muuzaji', { title: 'Jisajili — Fungua Duka' });
+  res.render('pages/jisajili-muuzaji', { title: 'Jisajili — Fungua Duka', formData: {}, missingFields: [] });
 });
 
 router.post('/jisajili/muuzaji', upload.fields([{ name: 'kitambulisho', maxCount: 1 }, { name: 'picha_duka', maxCount: 1 }]), (req, res) => {
   const { jina_duka, aina_bidhaa, simu, email, location, password, siku_kufunguliwa, maelezo_duka, latitude, longitude } = req.body;
 
-  // Taarifa zote ni za lazima kwa ajili ya usalama na ukamilifu wa akaunti
-  if (!jina_duka || !aina_bidhaa || !simu || !email || !location || !password || !siku_kufunguliwa || !maelezo_duka || !latitude || !longitude) {
-    req.session.flashError = 'Tafadhali jaza taarifa ZOTE zilizoombwa (ikiwemo eneo kwenye ramani) — ni za lazima kwa ajili ya usalama.';
-    return res.redirect('/jisajili/muuzaji');
+  const missingFields = missingValues({ jina_duka, aina_bidhaa, simu, email, location, password, siku_kufunguliwa, maelezo_duka });
+  const validCoordinates = latitude !== '' && longitude !== ''
+    && Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude))
+    && Number(latitude) >= -90 && Number(latitude) <= 90
+    && Number(longitude) >= -180 && Number(longitude) <= 180;
+  if (!validCoordinates) missingFields.push('latitude', 'longitude');
+  if (missingFields.length) {
+    return renderRegistrationError(req, res, 'pages/jisajili-muuzaji', 'Jisajili — Fungua Duka', missingFields, 'Kuna taarifa zinazokosekana au eneo la ramani halijachaguliwa. Sehemu zilizoangaziwa ndizo za kujaza.');
   }
   if (!req.files?.kitambulisho?.[0]) {
-    req.session.flashError = 'Tafadhali pakia nakala ya kitambulisho — ni ya lazima.';
-    return res.redirect('/jisajili/muuzaji');
+    return renderRegistrationError(req, res, 'pages/jisajili-muuzaji', 'Jisajili — Fungua Duka', ['kitambulisho'], 'Pakia nakala ya kitambulisho ili kuendelea.');
   }
   if (!req.files?.picha_duka?.[0]) {
-    req.session.flashError = 'Tafadhali pakia picha ya duka/nembo — ni ya lazima.';
-    return res.redirect('/jisajili/muuzaji');
+    return renderRegistrationError(req, res, 'pages/jisajili-muuzaji', 'Jisajili — Fungua Duka', ['picha_duka'], 'Pakia picha ya duka au nembo ili kuendelea.');
   }
   const existing = db.prepare('SELECT id FROM sellers WHERE simu = ? OR email = ?').get(simu.trim(), email.trim());
   if (existing) {
-    req.session.flashError = 'Namba ya simu au barua pepe hii tayari imesajiliwa kama duka.';
-    return res.redirect('/jisajili/muuzaji');
+    return renderRegistrationError(req, res, 'pages/jisajili-muuzaji', 'Jisajili — Fungua Duka', ['simu', 'email'], 'Namba ya simu au barua pepe hii tayari imesajiliwa kama duka.');
   }
 
   const kitambulisho = req.files.kitambulisho[0].filename;
@@ -48,29 +71,29 @@ router.post('/jisajili/muuzaji', upload.fields([{ name: 'kitambulisho', maxCount
 
 // =================== USAJILI WA MWASAFIRISHAJI ===================
 router.get('/jisajili/mwasafirishaji', (req, res) => {
-  res.render('pages/jisajili-mwasafirishaji', { title: 'Jisajili — Wa Usafirishaji' });
+  res.render('pages/jisajili-mwasafirishaji', { title: 'Jisajili — Wa Usafirishaji', formData: {}, missingFields: [] });
 });
 
 router.post('/jisajili/mwasafirishaji', upload.fields([{ name: 'kitambulisho', maxCount: 1 }, { name: 'leseni_faili', maxCount: 1 }]), (req, res) => {
   const { jina, simu, email, aina_gari, namba_usajili, leseni, eneo_huduma, password } = req.body;
 
-  if (!jina || !simu || !email || !aina_gari || !namba_usajili || !leseni || !eneo_huduma || !password) {
-    req.session.flashError = 'Tafadhali jaza taarifa ZOTE zilizoombwa — ni za lazima kwa ajili ya usalama.';
-    return res.redirect('/jisajili/mwasafirishaji');
+  const missingFields = missingValues({ jina, simu, email, aina_gari, namba_usajili, leseni, eneo_huduma, password });
+  if (missingFields.length) {
+    return renderRegistrationError(req, res, 'pages/jisajili-mwasafirishaji', 'Jisajili — Wa Usafirishaji', missingFields, 'Kuna taarifa zinazokosekana. Sehemu zilizoangaziwa ndizo za kujaza.');
   }
   const validGari = ['bodaboda', 'gari_ndogo', 'gari_kubwa', 'lori'];
   if (!validGari.includes(aina_gari)) {
-    req.session.flashError = 'Chagua aina sahihi ya gari.';
-    return res.redirect('/jisajili/mwasafirishaji');
+    return renderRegistrationError(req, res, 'pages/jisajili-mwasafirishaji', 'Jisajili — Wa Usafirishaji', ['aina_gari'], 'Chagua aina sahihi ya gari.');
   }
   if (!req.files?.kitambulisho?.[0] || !req.files?.leseni_faili?.[0]) {
-    req.session.flashError = 'Tafadhali pakia nakala ya kitambulisho NA leseni ya udereva — ni za lazima.';
-    return res.redirect('/jisajili/mwasafirishaji');
+    const missingFiles = [];
+    if (!req.files?.kitambulisho?.[0]) missingFiles.push('kitambulisho');
+    if (!req.files?.leseni_faili?.[0]) missingFiles.push('leseni_faili');
+    return renderRegistrationError(req, res, 'pages/jisajili-mwasafirishaji', 'Jisajili — Wa Usafirishaji', missingFiles, 'Pakia faili zilizoangaziwa ili kuendelea.');
   }
   const existing = db.prepare('SELECT id FROM drivers WHERE simu = ? OR email = ?').get(simu.trim(), email.trim());
   if (existing) {
-    req.session.flashError = 'Namba ya simu au barua pepe hii tayari imesajiliwa kama mwasafirishaji.';
-    return res.redirect('/jisajili/mwasafirishaji');
+    return renderRegistrationError(req, res, 'pages/jisajili-mwasafirishaji', 'Jisajili — Wa Usafirishaji', ['simu', 'email'], 'Namba ya simu au barua pepe hii tayari imesajiliwa kama mwasafirishaji.');
   }
 
   const kitambulisho = req.files.kitambulisho[0].filename;
@@ -91,19 +114,18 @@ router.post('/jisajili/mwasafirishaji', upload.fields([{ name: 'kitambulisho', m
 // mnunuzi anahitajika kuwa amesajiliwa (angalia routes/seller.js) — hivyo taarifa hapa ni
 // za lazima ili akaunti iwe kamili na salama tangu mwanzo.
 router.get('/jisajili/mnunuzi', (req, res) => {
-  res.render('pages/jisajili-mnunuzi', { title: 'Jisajili kama Mnunuzi' });
+  res.render('pages/jisajili-mnunuzi', { title: 'Jisajili kama Mnunuzi', formData: {}, missingFields: [] });
 });
 
 router.post('/jisajili/mnunuzi', (req, res) => {
   const { jina, simu, email, anwani, password } = req.body;
-  if (!jina || !simu || !email || !anwani || !password) {
-    req.session.flashError = 'Tafadhali jaza taarifa ZOTE — ni za lazima kwa ajili ya usalama na kufuatilia usafirishaji wako.';
-    return res.redirect('/jisajili/mnunuzi');
+  const missingFields = missingValues({ jina, simu, email, anwani, password });
+  if (missingFields.length) {
+    return renderRegistrationError(req, res, 'pages/jisajili-mnunuzi', 'Jisajili kama Mnunuzi', missingFields, 'Kuna taarifa zinazokosekana. Sehemu zilizoangaziwa ndizo za kujaza.');
   }
   const existing = db.prepare('SELECT id FROM buyers WHERE simu = ? OR email = ?').get(simu.trim(), email.trim());
   if (existing) {
-    req.session.flashError = 'Namba au barua pepe hii tayari imesajiliwa. Jaribu kuingia.';
-    return res.redirect('/jisajili/mnunuzi');
+    return renderRegistrationError(req, res, 'pages/jisajili-mnunuzi', 'Jisajili kama Mnunuzi', ['simu', 'email'], 'Namba au barua pepe hii tayari imesajiliwa. Jaribu kuingia.');
   }
   const hash = bcrypt.hashSync(password, 10);
   const info = db.prepare(`INSERT INTO buyers (jina, simu, email, anwani, password_hash) VALUES (?,?,?,?,?)`)

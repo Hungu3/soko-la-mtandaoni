@@ -229,6 +229,12 @@ html[data-theme="light"] .btn-primary{ color:#fff; background:#17202b; }
 .form-card{ background: var(--surface); border:1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 32px; }
 .field{ margin-bottom: 20px; }
 .field label{ display:block; font-size: 13.5px; font-weight:600; margin-bottom: 7px; color: var(--text); }
+.field-invalid > label{ color: var(--danger); }
+.field .input-invalid{ border-color: var(--danger) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 18%, transparent); }
+.password-control{ display:flex; align-items:center; gap:8px; }
+.password-control input{ flex:1; min-width:0; width:0 !important; }
+.google-map-link{ display:inline-flex; margin-top:8px; }
+.google-map-link[hidden]{ display:none; }
 .field .hint{ font-size:12px; color: var(--text-faint); margin-top:5px; }
 .field input[type=text], .field input[type=tel], .field input[type=email], .field input[type=password],
 .field input[type=number], .field input[type=file], .field select, .field textarea{
@@ -363,6 +369,13 @@ footer{ border-top: 1px solid var(--border-soft); padding: 48px 0 28px; margin-t
 }
 .map-picker.small, .map-display.small{ height: 200px; }
 .map-hint{ font-size:12px; color: var(--text-faint); margin-top:6px; }
+.tutorial-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-top:28px; }
+.tutorial-item h2{ font-size:19px; margin:0 0 8px; }
+.tutorial-item p{ color:var(--text-dim); margin:0 0 14px; }
+.tutorial-frame{ aspect-ratio:16/9; width:100%; border:1px solid var(--border); background:var(--bg-raised); }
+.tutorial-frame iframe{ width:100%; height:100%; border:0; }
+.tutorial-pending{ aspect-ratio:16/9; display:grid; place-items:center; padding:20px; text-align:center; color:var(--text-dim); background:var(--bg-raised); border:1px solid var(--border); }
+@media (max-width:700px){ .tutorial-grid{ grid-template-columns:1fr; } }
 .map-coords{ font-size:12.5px; color: var(--text-dim); margin-top:8px; }
 /* Leaflet inatengeneza tiles zake za giza-nyeupe; tunaweka kifuniko cheusi laini ili
    kiendane na muundo wa giza wa tovuti bila kuathiri usomaji wa ramani */
