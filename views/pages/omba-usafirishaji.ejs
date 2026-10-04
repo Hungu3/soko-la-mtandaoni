@@ -17,11 +17,12 @@
         </div>
         <div class="field">
           <label>Eneo la Kupeleka Bidhaa *</label>
-          <input type="text" name="eneo_kupeleka" required value="<%= currentBuyer.anwani || '' %>" placeholder="Mtaa, Mji">
+          <input type="text" id="deliveryLocation" name="eneo_kupeleka" required value="<%= currentBuyer.anwani || '' %>" placeholder="Mtaa, Mji">
         </div>
         <div class="field">
           <label>Weka Eneo Hasa kwenye Ramani (hiari, husaidia msafirishaji)</label>
           <div id="rampaKupeleka" class="map-picker"></div>
+          <div class="map-hint" id="deliveryLocationStatus" role="status">Andika eneo hapo juu ili alama ihamie kwenye ramani, au bonyeza ramani kuchagua sehemu.</div>
           <input type="hidden" name="kupeleka_lat" id="kupeleka_lat" value="<%= currentBuyer.latitude || '' %>">
           <input type="hidden" name="kupeleka_lng" id="kupeleka_lng" value="<%= currentBuyer.longitude || '' %>">
         </div>
@@ -38,6 +39,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/public/js/map.js"></script>
-<script>sokoInitMapPicker('rampaKupeleka', 'kupeleka_lat', 'kupeleka_lng');</script>
+<script>sokoInitMapPicker('rampaKupeleka', 'kupeleka_lat', 'kupeleka_lng', 'deliveryLocation', 'deliveryLocationStatus');</script>
 
 <%- include('../partials/bottom') %>

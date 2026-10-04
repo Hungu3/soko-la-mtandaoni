@@ -8,10 +8,12 @@ const SOKO_DEFAULT_LAT = -6.369028;
 const SOKO_DEFAULT_LNG = 34.888822;
 const SOKO_DEFAULT_ZOOM = 6;
 
-function sokoInitMapPicker(mapElId, latInputId, lngInputId) {
+function sokoInitMapPicker(mapElId, latInputId, lngInputId, locationInputId, statusId) {
   const mapEl = document.getElementById(mapElId);
   const latInput = document.getElementById(latInputId);
   const lngInput = document.getElementById(lngInputId);
+  const locationInput = locationInputId ? document.getElementById(locationInputId) : null;
+  const statusEl = statusId ? document.getElementById(statusId) : null;
   if (!mapEl || typeof L === 'undefined') return;
 
   const hasExisting = latInput.value && lngInput.value;
@@ -36,7 +38,62 @@ function sokoInitMapPicker(mapElId, latInputId, lngInputId) {
 
   map.on('click', function (e) {
     setPoint(e.latlng.lat, e.latlng.lng);
+    if (statusEl) statusEl.textContent = 'Eneo limechaguliwa. Unaweza kubofya ramani kurekebisha alama.';
   });
+
+  if (locationInput) {
+    let searchTimer;
+    let activeRequest;
+    let latestQuery = '';
+
+    const findLocation = async () => {
+      const query = locationInput.value.trim();
+      if (query.length < 3) {
+        if (statusEl) statusEl.textContent = 'Andika angalau herufi 3 kutafuta eneo kwenye ramani.';
+        return;
+      }
+      latestQuery = query;
+      if (activeRequest) activeRequest.abort();
+      activeRequest = new AbortController();
+      if (statusEl) statusEl.textContent = 'Inatafuta eneo kwenye ramani...';
+
+      try {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.search = new URLSearchParams({ format: 'jsonv2', limit: '1', countrycodes: 'tz', q: query });
+        const response = await fetch(url, { signal: activeRequest.signal, headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Geocoding request failed');
+        const results = await response.json();
+        if (query !== latestQuery) return;
+        if (!results.length) {
+          if (statusEl) statusEl.textContent = 'Eneo halijapatikana. Ongeza mtaa au mji, au weka alama kwa kubofya ramani.';
+          return;
+        }
+
+        const latitude = Number(results[0].lat);
+        const longitude = Number(results[0].lon);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error('Invalid coordinates');
+        map.setView([latitude, longitude], 15);
+        setPoint(latitude, longitude);
+        if (statusEl) statusEl.textContent = 'Eneo limepatikana na alama imewekwa kwenye ramani.';
+      } catch (error) {
+        if (error.name !== 'AbortError' && statusEl) {
+          statusEl.textContent = 'Ramani haikuweza kutafuta eneo sasa. Jaribu tena au weka alama kwa kubofya ramani.';
+        }
+      }
+    };
+
+    locationInput.addEventListener('input', function () {
+      clearTimeout(searchTimer);
+      latestQuery = locationInput.value.trim();
+      if (activeRequest) activeRequest.abort();
+      latInput.value = '';
+      lngInput.value = '';
+      if (marker) { map.removeLayer(marker); marker = null; }
+      searchTimer = setTimeout(findLocation, 1000);
+    });
+
+    if (locationInput.value.trim() && !hasExisting) searchTimer = setTimeout(findLocation, 1000);
+  }
 
   // Jaribu kutumia eneo halisi la kifaa (GPS) ikiwa mtumiaji ataruhusu, na hakuna eneo tayari
   if (!hasExisting && navigator.geolocation) {

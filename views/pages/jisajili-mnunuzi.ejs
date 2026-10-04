@@ -33,8 +33,7 @@
         </div>
         <div class="field">
           <label>Anwani (kwa ajili ya usafirishaji) *</label>
-          <input type="text" name="anwani" required value="<%= formData.anwani || '' %>" data-google-map-input class="<%= missingFields.includes('anwani') ? 'input-invalid' : '' %>" placeholder="Mtaa, Mji">
-          <a class="btn btn-outline btn-sm google-map-link" data-google-map-link target="_blank" rel="noopener noreferrer" <%= formData.anwani ? '' : 'hidden' %>>Fungua anwani kwenye Google Maps</a>
+          <input type="text" name="anwani" required value="<%= formData.anwani || '' %>" class="<%= missingFields.includes('anwani') ? 'input-invalid' : '' %>" placeholder="Mtaa, Mji">
         </div>
         <div class="field">
           <label>Password *</label>

@@ -41,14 +41,13 @@
           </div>
           <div class="field">
             <label>Location (Mtaa/Mji) *</label>
-            <input type="text" name="location" required value="<%= formData.location || '' %>" data-google-map-input class="<%= missingFields.includes('location') ? 'input-invalid' : '' %>" placeholder="Mfano: Kariakoo, Dar es Salaam">
-            <a class="btn btn-outline btn-sm google-map-link" data-google-map-link target="_blank" rel="noopener noreferrer" <%= formData.location ? '' : 'hidden' %>>Fungua eneo kwenye Google Maps</a>
+            <input type="text" id="location" name="location" required value="<%= formData.location || '' %>" class="<%= missingFields.includes('location') ? 'input-invalid' : '' %>" placeholder="Mfano: Kariakoo, Dar es Salaam">
           </div>
         </div>
         <div class="field">
           <label>Weka Eneo la Duka kwenye Ramani *</label>
           <div id="rampaDuka" class="map-picker"></div>
-          <div class="map-hint">Bonyeza mahali kwenye ramani panapoonyesha eneo la duka lako. Ramani itajaribu kutumia eneo lako la sasa kama utaruhusu.</div>
+          <div class="map-hint" id="locationStatus" role="status">Andika eneo la duka hapo juu ili alama ihamie kwenye ramani, au bonyeza ramani kuchagua eneo.</div>
           <input type="hidden" name="latitude" id="latitude" value="<%= formData.latitude || '' %>">
           <input type="hidden" name="longitude" id="longitude" value="<%= formData.longitude || '' %>">
         </div>
@@ -85,7 +84,7 @@
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/public/js/map.js"></script>
-<script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude');</script>
+<script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude', 'location', 'locationStatus');</script>
 <script src="/public/js/forms.js"></script>
 </body>
 </html>

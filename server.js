@@ -123,7 +123,7 @@ app.use('/', authRoutes);
 app.use('/duka-langu', sellerRoutes);
 app.use('/safari-yangu', driverRoutes);
 app.use('/portal-siri', adminRoutes);
-app.use('/admin', (req, res) => res.redirect('/portal-siri' + req.url));
+app.use('/admin', (req, res) => res.redirect(307, '/portal-siri' + req.url));
 
 // ---------- 404 ----------
 app.use((req, res) => {

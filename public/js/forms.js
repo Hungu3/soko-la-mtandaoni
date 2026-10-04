@@ -10,20 +10,6 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   });
 });
 
-document.querySelectorAll('[data-google-map-input]').forEach((input) => {
-  const link = input.closest('.field').querySelector('[data-google-map-link]');
-  if (!link) return;
-
-  const updateMapLink = () => {
-    const location = input.value.trim();
-    link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-    link.hidden = !location;
-  };
-
-  input.addEventListener('input', updateMapLink);
-  updateMapLink();
-});
-
 const firstInvalidField = document.querySelector('.input-invalid, .field-invalid');
 if (firstInvalidField) {
   firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });

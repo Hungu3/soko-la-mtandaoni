@@ -233,8 +233,6 @@ html[data-theme="light"] .btn-primary{ color:#fff; background:#17202b; }
 .field .input-invalid{ border-color: var(--danger) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 18%, transparent); }
 .password-control{ display:flex; align-items:center; gap:8px; }
 .password-control input{ flex:1; min-width:0; width:0 !important; }
-.google-map-link{ display:inline-flex; margin-top:8px; }
-.google-map-link[hidden]{ display:none; }
 .field .hint{ font-size:12px; color: var(--text-faint); margin-top:5px; }
 .field input[type=text], .field input[type=tel], .field input[type=email], .field input[type=password],
 .field input[type=number], .field input[type=file], .field select, .field textarea{

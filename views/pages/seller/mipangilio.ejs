@@ -16,13 +16,13 @@
       </div>
       <div class="field">
         <label>Location</label>
-        <input type="text" name="location" value="<%= currentSeller.location || '' %>">
+        <input type="text" id="storeLocation" name="location" value="<%= currentSeller.location || '' %>">
       </div>
     </div>
     <div class="field">
       <label>Eneo la Duka kwenye Ramani</label>
       <div id="rampaDuka" class="map-picker"></div>
-      <div class="map-hint">Bonyeza kwenye ramani kubadilisha eneo la duka lako.</div>
+      <div class="map-hint" id="storeLocationStatus" role="status">Andika eneo la duka hapo juu ili alama ihamie kwenye ramani, au bonyeza ramani kuchagua eneo.</div>
       <input type="hidden" name="latitude" id="latitude" value="<%= currentSeller.latitude || '' %>">
       <input type="hidden" name="longitude" id="longitude" value="<%= currentSeller.longitude || '' %>">
     </div>
@@ -62,6 +62,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/public/js/map.js"></script>
-<script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude');</script>
+<script>sokoInitMapPicker('rampaDuka', 'latitude', 'longitude', 'storeLocation', 'storeLocationStatus');</script>
 
 <%- include('../../partials/dash-bottom') %>
