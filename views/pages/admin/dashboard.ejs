@@ -28,6 +28,11 @@
 
 <div class="grid grid-2">
   <% if (isOwner) { %><div class="card" style="padding:24px;">
+    <h3 style="font-size:17px;">Picha na Matangazo ya Soko</h3>
+    <p style="font-size:13.5px;">Pakia picha au video za kampeni zinazoonekana kwenye ukurasa wa mwanzo. Picha za bidhaa zinaongezwa na kila muuzaji kwenye Bidhaa Zangu.</p>
+    <a href="/admin/matangazo" class="btn btn-accent btn-sm">Ongeza Picha ya Jukwaa</a>
+  </div><% } %>
+  <% if (isOwner) { %><div class="card" style="padding:24px;">
     <h3 style="font-size:17px;">Mapato Yanayokadiriwa kwa Mwezi</h3>
     <div class="info-row"><div class="k">Kutoka kwa Wauzaji</div><div class="v strong"><%= fmtMoney(mapatoMuuzaji) %></div></div>
     <div class="info-row"><div class="k">Kutoka kwa Wasafirishaji</div><div class="v strong"><%= fmtMoney(mapatoDereva) %></div></div>

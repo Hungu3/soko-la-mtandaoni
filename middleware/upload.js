@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
 });
 
 const ALLOWED = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf'];
+const IMAGE_ALLOWED = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
 function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
@@ -26,10 +27,32 @@ function fileFilter(req, file, cb) {
   cb(null, true);
 }
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 8 * 1024 * 1024, files: 10 }, // 8MB kwa faili, hadi faili 10
-});
+function imageFileFilter(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (!IMAGE_ALLOWED.includes(ext) || !file.mimetype.startsWith('image/')) {
+    return cb(new Error('Aina ya faili haikubaliki. Chagua picha ya JPG, PNG, WEBP au GIF.'));
+  }
+  cb(null, true);
+}
+
+function createUploader(filter) {
+  return multer({
+    storage,
+    fileFilter: filter,
+    limits: { fileSize: 8 * 1024 * 1024, files: 10 },
+  });
+}
+
+const upload = createUploader(fileFilter);
+upload.images = createUploader(imageFileFilter);
+
+upload.removeFiles = (filenames) => {
+  for (const filename of filenames || []) {
+    if (typeof filename !== 'string' || path.basename(filename) !== filename) continue;
+    fs.unlink(path.join(UPLOAD_DIR, filename), (error) => {
+      if (error && error.code !== 'ENOENT') console.error('Could not remove upload:', error.message);
+    });
+  }
+};
 
 module.exports = upload;

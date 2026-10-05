@@ -353,7 +353,7 @@ router.get('/matangazo', (req, res) => {
   const matangazo = db.prepare(`SELECT * FROM matangazo ORDER BY created_at DESC`).all();
   res.render('pages/admin/matangazo', { title: 'Matangazo', matangazo });
 });
-router.post('/matangazo/ongeza', upload.single('picha_faili'), (req, res) => {
+router.post('/matangazo/ongeza', upload.images.single('picha_faili'), (req, res) => {
   const { kichwa, maelezo, kiungo, aina, muundo, video, mtangazaji, duration_days } = req.body;
   if (!kichwa) {
     req.session.flashError = 'Kichwa cha tangazo ni lazima.';
@@ -403,7 +403,11 @@ router.get('/bidhaa', (req, res) => {
   res.render('pages/admin/bidhaa', { title: 'Bidhaa Zote', bidhaa });
 });
 router.post('/bidhaa/:id/futa', (req, res) => {
+  const bidhaa = db.prepare('SELECT picha FROM products WHERE id=?').get(req.params.id);
   const matokeo = deleteRecord('products', req.params.id, currentActor(res));
+  if (matokeo === 'hard' && bidhaa) {
+    try { upload.removeFiles(JSON.parse(bidhaa.picha || '[]')); } catch { /* ignore invalid legacy image data */ }
+  }
   req.session.flashSuccess = matokeo === 'soft' ? 'Bidhaa imefichwa.' : 'Bidhaa imeondolewa kwenye jukwaa.';
   res.redirect('/admin/bidhaa');
 });

@@ -4,7 +4,8 @@
 <p style="margin-bottom:24px;">Haya yanaonekana upande wa kulia wa ukurasa wa nyumbani (kama Facebook) — ikiwa ni <strong>Ads</strong> (yaliyolipiwa) au <strong>matangazo ya kawaida</strong>, kwa njia ya picha au video.</p>
 
 <div class="card" style="padding:24px; margin-bottom:32px; max-width:640px;">
-  <h3 style="font-size:16px; margin-bottom:14px;">Ongeza Tangazo Jipya</h3>
+  <h3 style="font-size:16px; margin-bottom:14px;"><%= isOwner ? 'Ongeza Picha au Tangazo la Jukwaa' : 'Ongeza Tangazo Jipya' %></h3>
+  <% if (isOwner) { %><p class="hint">Hapa Mmiliki hupakia picha za kampeni zinazotangazwa kwenye ukurasa wa mwanzo. Picha za bidhaa za wauzaji zinasimamiwa kwenye Bidhaa Zote.</p><% } %>
   <form action="/admin/matangazo/ongeza" method="POST" enctype="multipart/form-data">
     <div class="field">
       <label>Aina ya Tangazo</label>
@@ -34,7 +35,8 @@
     <div class="field-row">
       <div class="field">
         <label>Picha ya Tangazo (ikiwa umechagua "Picha")</label>
-        <input type="file" name="picha_faili" accept="image/*">
+        <input type="file" name="picha_faili" accept="image/*" data-image-preview-input>
+        <img data-image-preview alt="Hakikisho la picha ya tangazo" hidden style="max-width:220px;max-height:150px;object-fit:contain;margin-top:10px;border-radius:4px;">
       </div>
       <div class="field">
         <label>Kiungo cha Video (ikiwa umechagua "Video")</label>
@@ -62,16 +64,35 @@
   </form>
 </div>
 
+<script>
+  document.querySelectorAll('[data-image-preview-input]').forEach(input => {
+    input.addEventListener('change', () => {
+      const preview = input.parentElement.querySelector('[data-image-preview]');
+      if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+      const file = input.files && input.files[0];
+      if (!file || !file.type.startsWith('image/')) {
+        preview.removeAttribute('src');
+        preview.hidden = true;
+        return;
+      }
+      preview.dataset.objectUrl = URL.createObjectURL(file);
+      preview.src = preview.dataset.objectUrl;
+      preview.hidden = false;
+    });
+  });
+</script>
+
 <% if (!matangazo.length) { %>
   <div class="empty"><div class="mark">&#128276;</div>Bado hakuna matangazo.</div>
 <% } else { %>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Kichwa</th><th>Aina</th><th>Muundo</th><th>Muda</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <thead><tr><th>Kichwa</th><th>Picha/Video</th><th>Aina</th><th>Muundo</th><th>Muda</th><th>Hali</th><th>Vitendo</th></tr></thead>
     <tbody>
       <% matangazo.forEach(m => { %>
       <tr>
         <td class="strong"><%= m.kichwa %></td>
+        <td><% if (m.picha) { %><img src="/uploads/<%= m.picha %>" alt="Picha ya <%= m.kichwa %>" style="width:64px;height:48px;object-fit:cover;border-radius:4px;"><% } else if (m.video) { %><span class="badge badge-approved">Video imeunganishwa</span><% } else { %><span class="hint">Hakuna faili</span><% } %></td>
         <td><span class="badge <%= m.aina === 'ad' ? 'badge-gold' : 'badge-free' %>"><%= m.aina === 'ad' ? 'AD' : 'Kawaida' %></span></td>
         <td style="text-transform:capitalize;"><%= m.muundo || 'picha' %></td>
         <td><%= m.mtangazaji || '—' %><% if (isOwner && m.kiasi_kilicholipwa) { %><br><span style="font-size:12px; color:var(--text-faint);"><%= fmtMoney(m.kiasi_kilicholipwa) %></span><% } %></td>

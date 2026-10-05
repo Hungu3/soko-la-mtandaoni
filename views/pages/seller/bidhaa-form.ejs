@@ -43,15 +43,17 @@
     </div>
     <% if (allPhotos(bidhaaItem.picha).length) { %>
     <div class="field">
-      <label>Picha za Sasa</label>
+      <label>Picha za Sasa (chagua picha ya kuondoa)</label>
       <div class="gallery-thumbs">
-        <% allPhotos(bidhaaItem.picha).forEach(ph => { %><img src="/uploads/<%= ph %>" alt=""><% }) %>
+        <% allPhotos(bidhaaItem.picha).forEach(ph => { %>
+          <label class="gallery-thumb-remove"><img src="/uploads/<%= ph %>" alt="Picha ya bidhaa"><span><input type="checkbox" name="remove_photos" value="<%= ph %>"> Ondoa</span></label>
+        <% }) %>
       </div>
     </div>
     <% } %>
     <% } %>
     <div class="field">
-      <label>Ongeza Picha (hadi <%= fmtNum(limits.picha) %>)</label>
+      <label><%= bidhaaItem ? 'Ongeza picha nyingine' : 'Picha za Bidhaa' %> (hadi <%= fmtNum(limits.picha) %>)</label>
       <input type="file" name="picha" accept="image/*" multiple>
     </div>
     <button type="submit" class="btn btn-accent">Hifadhi Bidhaa</button>

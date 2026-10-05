@@ -8,10 +8,11 @@
 <% } else { %>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Bidhaa</th><th>Duka</th><th>Bei</th><th>Hali</th><th>Vitendo</th></tr></thead>
+    <thead><tr><th>Picha</th><th>Bidhaa</th><th>Duka</th><th>Bei</th><th>Hali</th><th>Vitendo</th></tr></thead>
     <tbody>
       <% bidhaa.forEach(p => { %>
       <tr>
+        <td><% const pichaBidhaa = firstPhoto(p.picha); if (pichaBidhaa) { %><img src="<%= pichaBidhaa %>" alt="Picha ya <%= p.jina %>" style="width:56px;height:56px;object-fit:cover;border-radius:4px;"><% } else { %><span class="hint">Hakuna picha</span><% } %></td>
         <td class="strong"><%= p.jina %></td>
         <td><%= p.jina_duka %></td>
         <td><%= fmtMoney(p.bei) %></td>

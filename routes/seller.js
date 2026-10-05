@@ -25,7 +25,7 @@ router.get('/mipangilio', (req, res) => {
   res.render('pages/seller/mipangilio', { title: 'Mipangilio ya Duka' });
 });
 
-router.post('/mipangilio', upload.single('picha_duka'), (req, res) => {
+router.post('/mipangilio', upload.images.single('picha_duka'), (req, res) => {
   const s = res.locals.currentSeller;
   const { jina_duka, aina_bidhaa, location, maelezo_duka, siku_kufunguliwa, email, latitude, longitude, theme_color } = req.body;
 
@@ -67,25 +67,30 @@ router.get('/bidhaa/ongeza', (req, res) => {
   res.render('pages/seller/bidhaa-form', { title: 'Ongeza Bidhaa', bidhaaItem: null, limits });
 });
 
-router.post('/bidhaa/ongeza', upload.array('picha', 10), (req, res) => {
+router.post('/bidhaa/ongeza', upload.images.array('picha', 10), (req, res) => {
   const s = res.locals.currentSeller;
   const limits = sellerLimits(s.tier);
   const idadiBidhaa = db.prepare('SELECT COUNT(*) c FROM products WHERE seller_id = ?').get(s.id).c;
 
   if (idadiBidhaa >= limits.bidhaa) {
+    upload.removeFiles((req.files || []).map(file => file.filename));
     req.session.flashError = `Umefikia kikomo cha bidhaa ${limits.bidhaa}. Boresha kiwango chako.`;
     return res.redirect('/duka-langu/upgrade');
   }
 
   const { jina, kategoria, bei, maelezo, gharama_usafirishaji, idadi } = req.body;
-  if (!jina || !bei) {
-    req.session.flashError = 'Jina la bidhaa na bei ni lazima.';
+  const beiNamba = Number(bei);
+  if (!jina?.trim() || bei === '' || !Number.isFinite(beiNamba) || beiNamba < 0) {
+    upload.removeFiles((req.files || []).map(file => file.filename));
+    req.session.flashError = 'Jina la bidhaa na bei halali isiyo chini ya sifuri ni lazima.';
     return res.redirect('/duka-langu/bidhaa/ongeza');
   }
 
-  let picha = (req.files || []).map(f => f.filename);
-  if (picha.length > limits.picha) {
-    picha = picha.slice(0, limits.picha);
+  const uploadedPhotos = (req.files || []).map(f => f.filename);
+  const picha = limits.picha === Infinity ? uploadedPhotos : uploadedPhotos.slice(0, limits.picha);
+  const unusedPhotos = uploadedPhotos.filter(filename => !picha.includes(filename));
+  if (unusedPhotos.length) {
+    upload.removeFiles(unusedPhotos);
     req.session.flashError = `Kiwango chako (${s.tier}) kinaruhusu picha ${limits.picha} kwa bidhaa — picha za ziada hazikuhifadhiwa.`;
   }
 
@@ -106,22 +111,41 @@ router.get('/bidhaa/:id/hariri', (req, res) => {
   res.render('pages/seller/bidhaa-form', { title: 'Hariri Bidhaa', bidhaaItem, limits });
 });
 
-router.post('/bidhaa/:id/hariri', upload.array('picha', 10), (req, res) => {
+router.post('/bidhaa/:id/hariri', upload.images.array('picha', 10), (req, res) => {
   const s = res.locals.currentSeller;
   const bidhaaItem = db.prepare('SELECT * FROM products WHERE id = ? AND seller_id = ?').get(req.params.id, s.id);
-  if (!bidhaaItem) return res.redirect('/duka-langu/bidhaa');
+  if (!bidhaaItem) {
+    upload.removeFiles((req.files || []).map(file => file.filename));
+    return res.redirect('/duka-langu/bidhaa');
+  }
 
   const { jina, kategoria, bei, maelezo, gharama_usafirishaji, idadi, hali } = req.body;
   const limits = sellerLimits(s.tier);
+  const beiNamba = Number(bei);
+  if (!jina?.trim() || bei === '' || !Number.isFinite(beiNamba) || beiNamba < 0) {
+    upload.removeFiles((req.files || []).map(file => file.filename));
+    req.session.flashError = 'Jina la bidhaa na bei halali isiyo chini ya sifuri ni lazima.';
+    return res.redirect(`/duka-langu/bidhaa/${bidhaaItem.id}/hariri`);
+  }
 
-  let picha = JSON.parse(bidhaaItem.picha || '[]');
-  const mpya = (req.files || []).map(f => f.filename);
-  if (mpya.length) {
-    picha = [...picha, ...mpya].slice(0, limits.picha === Infinity ? undefined : limits.picha);
+  let existingPhotos;
+  try { existingPhotos = JSON.parse(bidhaaItem.picha || '[]'); } catch { existingPhotos = []; }
+  const requestedRemoval = [].concat(req.body.remove_photos || [])
+    .filter(filename => existingPhotos.includes(filename));
+  let picha = existingPhotos.filter(filename => !requestedRemoval.includes(filename));
+  const uploadedPhotos = (req.files || []).map(file => file.filename);
+  const availableSlots = limits.picha === Infinity ? Infinity : Math.max(0, limits.picha - picha.length);
+  const acceptedPhotos = availableSlots === Infinity ? uploadedPhotos : uploadedPhotos.slice(0, availableSlots);
+  const unusedPhotos = uploadedPhotos.filter(filename => !acceptedPhotos.includes(filename));
+  picha = [...picha, ...acceptedPhotos];
+  if (unusedPhotos.length) {
+    upload.removeFiles(unusedPhotos);
+    req.session.flashError = `Kiwango chako (${s.tier}) hakina nafasi ya picha zote mpya ulizochagua.`;
   }
 
   db.prepare(`UPDATE products SET jina=?, kategoria=?, bei=?, maelezo=?, gharama_usafirishaji=?, idadi=?, hali=?, picha=? WHERE id=?`)
     .run(jina, kategoria || null, Number(bei), maelezo || null, gharama_usafirishaji || null, Number(idadi) || 1, hali || 'ipo', JSON.stringify(picha), bidhaaItem.id);
+  upload.removeFiles(requestedRemoval);
 
   req.session.flashSuccess = 'Bidhaa imesasishwa.';
   res.redirect('/duka-langu/bidhaa');
@@ -129,7 +153,11 @@ router.post('/bidhaa/:id/hariri', upload.array('picha', 10), (req, res) => {
 
 router.post('/bidhaa/:id/futa', (req, res) => {
   const s = res.locals.currentSeller;
-  db.prepare('DELETE FROM products WHERE id = ? AND seller_id = ?').run(req.params.id, s.id);
+  const bidhaaItem = db.prepare('SELECT picha FROM products WHERE id = ? AND seller_id = ?').get(req.params.id, s.id);
+  const result = db.prepare('DELETE FROM products WHERE id = ? AND seller_id = ?').run(req.params.id, s.id);
+  if (result.changes && bidhaaItem) {
+    try { upload.removeFiles(JSON.parse(bidhaaItem.picha || '[]')); } catch { /* ignore invalid legacy image data */ }
+  }
   req.session.flashSuccess = 'Bidhaa imeondolewa kwenye duka lako.';
   res.redirect('/duka-langu/bidhaa');
 });
