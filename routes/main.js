@@ -18,14 +18,14 @@ router.use((req, res, next) => {
 router.get('/', (req, res) => {
   // Matangazo yamegawanyika: "ads" (yaliyolipiwa) na "kawaida" (ya kijamii/matangazo ya kawaida) —
   // yote yanaonekana upande wa kulia (kama Facebook), yakiwa na picha au video + maelezo.
-  const ads = db.prepare(`SELECT * FROM matangazo WHERE active = 1 AND status='approved' AND aina = 'ad' ORDER BY created_at DESC LIMIT 6`).all();
-  const matangazoKawaida = db.prepare(`SELECT * FROM matangazo WHERE active = 1 AND status='approved' AND aina != 'ad' ORDER BY created_at DESC LIMIT 10`).all();
+  const ads = db.prepare(`SELECT * FROM matangazo WHERE active = 1 AND imefutwa=0 AND status='approved' AND aina = 'ad' ORDER BY created_at DESC LIMIT 6`).all();
+  const matangazoKawaida = db.prepare(`SELECT * FROM matangazo WHERE active = 1 AND imefutwa=0 AND status='approved' AND aina != 'ad' ORDER BY created_at DESC LIMIT 10`).all();
 
   const maduka = db.prepare(`SELECT * FROM sellers WHERE status = 'approved' AND imefutwa = 0
     ORDER BY CASE tier WHEN 'GOLD' THEN 4 WHEN 'SILVER' THEN 3 WHEN 'BRONZE' THEN 2 ELSE 1 END DESC, created_at DESC LIMIT 8`).all();
   const bidhaaMpya = db.prepare(`SELECT p.*, s.jina_duka, s.location FROM products p
     JOIN sellers s ON s.id = p.seller_id
-    WHERE s.status = 'approved' AND s.imefutwa = 0 AND p.hali = 'ipo' AND p.imefutwa = 0 AND COALESCE(p.online, 1) = 1
+    WHERE s.status = 'approved' AND s.imefutwa = 0 AND p.hali = 'ipo' AND p.idadi > 0 AND p.imefutwa = 0 AND COALESCE(p.online, 1) = 1
     ORDER BY p.created_at DESC LIMIT 8`).all();
 
   res.render('pages/home', {
@@ -42,7 +42,7 @@ router.get('/tafuta', (req, res) => {
 
   let sql = `SELECT p.*, s.jina_duka, s.location, s.tier FROM products p
              JOIN sellers s ON s.id = p.seller_id
-             WHERE s.status = 'approved' AND s.imefutwa = 0 AND p.hali = 'ipo' AND p.imefutwa = 0 AND COALESCE(p.online, 1) = 1`;
+             WHERE s.status = 'approved' AND s.imefutwa = 0 AND p.hali = 'ipo' AND p.idadi > 0 AND p.imefutwa = 0 AND COALESCE(p.online, 1) = 1`;
   const params = [];
   if (q) {
     sql += ` AND (p.jina LIKE ? OR p.maelezo LIKE ? OR s.jina_duka LIKE ?)`;
@@ -68,8 +68,8 @@ router.get('/duka/:id', (req, res) => {
   if (!duka) return res.status(404).render('pages/haipo', { title: 'Duka Halipo', ujumbe: 'Duka hili halipo au bado halijaidhinishwa.' });
 
   syncSellerSubscription(duka.id);
-  const bidhaa = db.prepare(`SELECT * FROM products WHERE seller_id = ? AND imefutwa = 0 AND COALESCE(online, 1) = 1 ORDER BY created_at DESC`).all(duka.id);
-  const maoni = db.prepare(`SELECT * FROM reviews WHERE seller_id = ? AND status = 'published' ORDER BY created_at DESC LIMIT 20`).all(duka.id);
+  const bidhaa = db.prepare(`SELECT * FROM products WHERE seller_id = ? AND hali='ipo' AND idadi>0 AND imefutwa = 0 AND COALESCE(online, 1) = 1 ORDER BY created_at DESC`).all(duka.id);
+  const maoni = db.prepare(`SELECT * FROM reviews WHERE seller_id = ? AND status = 'published' AND imefutwa=0 ORDER BY created_at DESC LIMIT 20`).all(duka.id);
   const wastaniRating = maoni.length ? (maoni.reduce((a, r) => a + r.rating, 0) / maoni.length).toFixed(1) : null;
 
   res.render('pages/duka', { title: duka.jina_duka, duka, bidhaa, maoni, wastaniRating });
@@ -78,17 +78,20 @@ router.get('/duka/:id', (req, res) => {
 // ---------- Ukurasa wa Bidhaa ----------
 router.get('/bidhaa/:id', (req, res) => {
   const bidhaa = db.prepare(`SELECT p.*, s.jina_duka, s.simu, s.location, s.tier, s.status as duka_status, s.imefutwa as duka_imefutwa
-    FROM products p JOIN sellers s ON s.id = p.seller_id WHERE p.id = ? AND COALESCE(p.online, 1) = 1`).get(req.params.id);
+    FROM products p JOIN sellers s ON s.id = p.seller_id
+    WHERE p.id = ? AND p.imefutwa=0 AND p.hali='ipo' AND p.idadi>0 AND COALESCE(p.online, 1) = 1`).get(req.params.id);
   if (!bidhaa || bidhaa.duka_status !== 'approved' || bidhaa.duka_imefutwa) {
     return res.status(404).render('pages/haipo', { title: 'Bidhaa Haipo', ujumbe: 'Bidhaa hii haipo au duka lake halijaidhinishwa.' });
   }
-  const bidhaaZingine = db.prepare(`SELECT * FROM products WHERE seller_id = ? AND id != ? AND imefutwa = 0 AND COALESCE(online, 1) = 1 ORDER BY created_at DESC LIMIT 4`).all(bidhaa.seller_id, bidhaa.id);
+  const bidhaaZingine = db.prepare(`SELECT * FROM products WHERE seller_id = ? AND id != ? AND hali='ipo' AND idadi>0 AND imefutwa = 0 AND COALESCE(online, 1) = 1 ORDER BY created_at DESC LIMIT 4`).all(bidhaa.seller_id, bidhaa.id);
   res.render('pages/bidhaa', { title: bidhaa.jina, bidhaa, bidhaaZingine });
 });
 
 // ---------- Kuacha Maoni (Review) ----------
 router.post('/bidhaa/:id/maoni', (req, res) => {
-  const bidhaa = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+  const bidhaa = db.prepare(`SELECT p.* FROM products p JOIN sellers s ON s.id=p.seller_id
+    WHERE p.id=? AND p.imefutwa=0 AND p.hali='ipo' AND p.idadi>0 AND COALESCE(p.online,1)=1
+      AND s.status='approved' AND s.imefutwa=0`).get(req.params.id);
   if (!bidhaa) return res.redirect('/');
   const { buyer_name, rating, maoni } = req.body;
   if (!buyer_name || !maoni) {
@@ -113,20 +116,39 @@ router.post('/bidhaa/:id/maoni', (req, res) => {
 router.get('/bidhaa/:id/omba-usafirishaji', requireBuyer, (req, res) => {
   const aina = req.query.aina === 'protected' ? 'protected' : 'public';
   const bidhaa = db.prepare(`SELECT p.*, s.jina_duka, s.location as seller_location FROM products p
-    JOIN sellers s ON s.id = p.seller_id WHERE p.id = ?`).get(req.params.id);
+    JOIN sellers s ON s.id = p.seller_id WHERE p.id = ? AND p.imefutwa=0 AND p.hali='ipo' AND p.idadi>0
+      AND COALESCE(p.online,1)=1 AND s.status='approved' AND s.imefutwa=0`).get(req.params.id);
   if (!bidhaa) return res.redirect('/');
   res.render('pages/omba-usafirishaji', { title: 'Omba Usafirishaji', bidhaa, aina });
 });
 
 router.post('/bidhaa/:id/omba-usafirishaji', requireBuyer, (req, res) => {
-  const bidhaa = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+  const bidhaa = db.prepare(`SELECT p.* FROM products p JOIN sellers s ON s.id=p.seller_id
+    WHERE p.id=? AND p.imefutwa=0 AND p.hali='ipo' AND p.idadi>0 AND COALESCE(p.online,1)=1
+      AND s.status='approved' AND s.imefutwa=0`).get(req.params.id);
   if (!bidhaa) return res.redirect('/');
   const buyer = res.locals.currentBuyer;
   const { aina, eneo_kupeleka, gharama_iliyopendekezwa, kupeleka_lat, kupeleka_lng } = req.body;
   const ainaSalama = aina === 'protected' ? 'protected' : 'public';
+  const priceText = typeof gharama_iliyopendekezwa === 'string' ? gharama_iliyopendekezwa.trim() : '';
+  const proposedPrice = priceText ? Number(priceText) : null;
+  const latitudeText = typeof kupeleka_lat === 'string' ? kupeleka_lat.trim() : '';
+  const longitudeText = typeof kupeleka_lng === 'string' ? kupeleka_lng.trim() : '';
+  const latitude = latitudeText ? Number(latitudeText) : null;
+  const longitude = longitudeText ? Number(longitudeText) : null;
 
-  if (!eneo_kupeleka) {
+  if (typeof eneo_kupeleka !== 'string' || !eneo_kupeleka.trim() || eneo_kupeleka.trim().length > 300) {
     req.session.flashError = 'Tafadhali weka eneo la kupeleka bidhaa.';
+    return res.redirect(`/bidhaa/${bidhaa.id}/omba-usafirishaji?aina=${ainaSalama}`);
+  }
+  if (priceText && (!Number.isFinite(proposedPrice) || proposedPrice < 0)) {
+    req.session.flashError = 'Bei inayopendekezwa lazima iwe namba halali isiyo chini ya sifuri.';
+    return res.redirect(`/bidhaa/${bidhaa.id}/omba-usafirishaji?aina=${ainaSalama}`);
+  }
+  if (Boolean(latitudeText) !== Boolean(longitudeText)
+      || (latitudeText && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90
+        || !Number.isFinite(longitude) || longitude < -180 || longitude > 180))) {
+    req.session.flashError = 'Eneo la ramani halijakamilika au coordinates si sahihi. Tafuta eneo tena.';
     return res.redirect(`/bidhaa/${bidhaa.id}/omba-usafirishaji?aina=${ainaSalama}`);
   }
 
@@ -135,13 +157,13 @@ router.post('/bidhaa/:id/omba-usafirishaji', requireBuyer, (req, res) => {
     kupeleka_lat, kupeleka_lng, gharama_iliyopendekezwa, pickup_code, delivery_code, status)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'inasubiri')`)
     .run(bidhaa.id, bidhaa.seller_id, ainaSalama, buyer.id, buyer.jina, buyer.simu,
-         null, eneo_kupeleka.trim(), kupeleka_lat ? Number(kupeleka_lat) : null, kupeleka_lng ? Number(kupeleka_lng) : null,
-         gharama_iliyopendekezwa ? Number(gharama_iliyopendekezwa) : null, verificationCode(), verificationCode());
+          null, eneo_kupeleka.trim(), latitude, longitude,
+          proposedPrice, verificationCode(), verificationCode());
 
-  if (gharama_iliyopendekezwa) {
+        if (proposedPrice !== null) {
     db.prepare(`INSERT INTO delivery_notes (delivery_id, mtumaji_aina, mtumaji_jina, ujumbe, bei_pendekezwa)
                 VALUES (?, 'mnunuzi', ?, ?, ?)`)
-      .run(info.lastInsertRowid, buyer.jina, 'Nimependekeza bei ya usafirishaji.', Number(gharama_iliyopendekezwa));
+            .run(info.lastInsertRowid, buyer.jina, 'Nimependekeza bei ya usafirishaji.', proposedPrice);
   }
 
   req.session.flashSuccess = 'Ombi lako la usafirishaji limetumwa. Utaunganishwa na muuzaji na msafirishaji kukubaliana bei.';
@@ -200,15 +222,22 @@ router.post('/usafirishaji/:id/ujumbe', (req, res) => {
   else if (niMuuzaji) { mtumajiAina = 'muuzaji'; mtumajiJina = res.locals.currentSeller.jina_duka; }
   else if (niMsafirishaji) { mtumajiAina = 'msafirishaji'; mtumajiJina = res.locals.currentDriver.jina; }
 
-  const { ujumbe, bei_pendekezwa, kubali_bei } = req.body;
+  const ujumbe = typeof req.body.ujumbe === 'string' ? req.body.ujumbe.trim() : '';
+  const priceText = typeof req.body.bei_pendekezwa === 'string' ? req.body.bei_pendekezwa.trim() : '';
+  const kubali_bei = req.body.kubali_bei;
+  const proposedPrice = priceText ? Number(priceText) : null;
+  if (ujumbe.length > 2000 || (priceText && (!Number.isFinite(proposedPrice) || proposedPrice < 0))) {
+    req.session.flashError = 'Ujumbe au bei umezidi kiwango au si sahihi.';
+    return res.redirect('/usafirishaji/' + item.id);
+  }
 
-  if (ujumbe && ujumbe.trim()) {
+  if (ujumbe) {
     db.prepare(`INSERT INTO delivery_notes (delivery_id, mtumaji_aina, mtumaji_jina, ujumbe, bei_pendekezwa)
                 VALUES (?,?,?,?,?)`)
-      .run(item.id, mtumajiAina, mtumajiJina, ujumbe.trim(), bei_pendekezwa ? Number(bei_pendekezwa) : null);
+      .run(item.id, mtumajiAina, mtumajiJina, ujumbe, proposedPrice);
   }
-  if (bei_pendekezwa) {
-    db.prepare(`UPDATE delivery_requests SET gharama_iliyopendekezwa = ? WHERE id = ?`).run(Number(bei_pendekezwa), item.id);
+  if (proposedPrice !== null) {
+    db.prepare(`UPDATE delivery_requests SET gharama_iliyopendekezwa = ?, gharama_imekubaliwa=0 WHERE id = ?`).run(proposedPrice, item.id);
   }
   if (kubali_bei === '1' && (niMnunuzi || niMuuzaji)) {
     db.prepare(`UPDATE delivery_requests SET gharama_imekubaliwa = 1 WHERE id = ?`).run(item.id);
@@ -228,33 +257,49 @@ router.post('/usafirishaji/:id/chat', (req, res) => {
     res.locals.currentDriver && { type: 'driver', id: res.locals.currentDriver.id, name: res.locals.currentDriver.jina },
   ].filter(Boolean);
   const participant = participants.find(p => (p.type === 'buyer' && p.id === item.buyer_id) || (p.type === 'seller' && p.id === item.seller_id) || (p.type === 'driver' && p.id === item.driver_id));
-  if (!participant || !req.body.message || !req.body.message.trim()) return res.redirect('/usafirishaji/' + item.id);
+  const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+  if (!participant || !message || message.length > 2000) return res.redirect('/usafirishaji/' + item.id);
   db.prepare(`INSERT INTO chat_messages (delivery_id, sender_type, sender_id, sender_name, message) VALUES (?,?,?,?,?)`)
-    .run(item.id, participant.type, participant.id, participant.name, req.body.message.trim());
+    .run(item.id, participant.type, participant.id, participant.name, message);
   res.redirect('/usafirishaji/' + item.id);
 });
 
 router.post('/usafirishaji/:id/dispute', requireBuyer, (req, res) => {
   const item = db.prepare('SELECT * FROM delivery_requests WHERE id=? AND buyer_id=?').get(req.params.id, res.locals.currentBuyer.id);
   if (!item) return res.redirect('/');
+  const openDispute = db.prepare(`SELECT id FROM disputes WHERE delivery_id=? AND status NOT IN ('resolved','refunded')`).get(item.id);
+  if (openDispute) {
+    req.session.flashError = 'Tayari kuna mgogoro unaosubiri kushughulikiwa kwenye oda hii.';
+    return res.redirect('/usafirishaji/' + item.id);
+  }
+  if (!req.body.details || !req.body.details.trim()) {
+    req.session.flashError = 'Eleza kwa kifupi sababu ya kufungua mgogoro.';
+    return res.redirect('/usafirishaji/' + item.id);
+  }
   db.prepare(`INSERT INTO disputes (delivery_id, buyer_id, reason, details) VALUES (?,?,?,?)`)
-    .run(item.id, res.locals.currentBuyer.id, req.body.reason || 'other', (req.body.details || '').trim());
-  db.prepare(`UPDATE delivery_requests SET payment_status='disputed' WHERE id=?`).run(item.id);
+    .run(item.id, res.locals.currentBuyer.id, ['item_not_received', 'item_damaged', 'wrong_item', 'other'].includes(req.body.reason) ? req.body.reason : 'other', req.body.details.trim());
   req.session.flashSuccess = 'Mgogoro umefunguliwa na umepelekwa kwa Admin.';
   res.redirect('/usafirishaji/' + item.id);
 });
 
 router.post('/usafirishaji/:id/payment', requireBuyer, (req, res) => {
   const item = db.prepare('SELECT * FROM delivery_requests WHERE id=? AND buyer_id=?').get(req.params.id, res.locals.currentBuyer.id);
-  if (!item || !item.gharama_imekubaliwa || item.payment_status === 'released') return res.redirect('/usafirishaji/' + req.params.id);
-  const amount = Number(req.body.amount || item.gharama_iliyopendekezwa || 0);
-  if (amount <= 0 || !req.body.payment_reference) {
-    req.session.flashError = 'Weka kiasi na reference ya malipo.';
+  if (!item || !item.gharama_imekubaliwa || item.payment_status !== 'not_started') return res.redirect('/usafirishaji/' + req.params.id);
+  const amount = Number(req.body.amount);
+  const agreedAmount = Number(item.gharama_iliyopendekezwa);
+  const reference = typeof req.body.payment_reference === 'string' ? req.body.payment_reference.trim() : '';
+  if (!Number.isFinite(amount) || amount <= 0 || amount !== agreedAmount || reference.length < 4 || reference.length > 120) {
+    req.session.flashError = 'Kiasi lazima kilingane na bei iliyokubaliwa, na payment reference iwe sahihi.';
     return res.redirect('/usafirishaji/' + item.id);
   }
-  db.prepare(`UPDATE delivery_requests SET payment_status='held', payment_reference=?, escrow_amount=? WHERE id=?`)
-    .run(req.body.payment_reference.trim(), amount, item.id);
-  req.session.flashSuccess = 'Malipo yamewekwa Pending Payment. Yataachiliwa baada ya Delivery Code kuthibitishwa.';
+  const result = db.prepare(`UPDATE delivery_requests SET payment_status='reported', payment_reference=?, escrow_amount=?
+    WHERE id=? AND buyer_id=? AND gharama_imekubaliwa=1 AND payment_status='not_started'`)
+    .run(reference, amount, item.id, res.locals.currentBuyer.id);
+  if (!result.changes) {
+    req.session.flashError = 'Taarifa ya malipo tayari imewasilishwa au oda imebadilika.';
+    return res.redirect('/usafirishaji/' + item.id);
+  }
+  req.session.flashSuccess = 'Reference imepokelewa na inasubiri Mmiliki ahakiki malipo. Pesa hazijathibitishwa na mfumo wa malipo.';
   res.redirect('/usafirishaji/' + item.id);
 });
 

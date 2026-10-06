@@ -54,5 +54,6 @@ upload.removeFiles = (filenames) => {
     });
   }
 };
+upload.uploadDir = UPLOAD_DIR;
 
 module.exports = upload;

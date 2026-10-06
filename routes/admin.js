@@ -1,5 +1,6 @@
 // routes/admin.js — Paneli ya Mmiliki (Admin) na Wasimamizi (Staff)
 const express = require('express');
+const path = require('path');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { db, getSellerPricing, getDriverPricing, setSetting, deleteRecord, restoreRecord, recordAudit } = require('../db/db');
@@ -13,7 +14,7 @@ router.get('/ingia', (req, res) => {
   res.render('pages/admin/ingia', { title: 'Admin — Ingia', layout: false });
 });
 
-router.post('/ingia', (req, res) => {
+router.post('/ingia', (req, res, next) => {
   const utambulisho = (req.body.utambulisho || req.body.email || '').trim();
   const { password } = req.body;
   const key = `${req.ip}:${utambulisho.toLowerCase()}`;
@@ -25,9 +26,12 @@ router.post('/ingia', (req, res) => {
   const admin = db.prepare('SELECT * FROM admins WHERE email = ? OR simu = ?').get(utambulisho, utambulisho);
   if (admin && bcrypt.compareSync(password || '', admin.password_hash)) {
     loginAttempts.delete(key);
-    req.session.adminId = admin.id;
-    req.session.admin2faVerified = false;
-    return res.redirect('/admin/2fa');
+    return req.session.regenerate(error => {
+      if (error) return next(error);
+      req.session.adminId = admin.id;
+      req.session.admin2faVerified = false;
+      res.redirect('/admin/2fa');
+    });
   }
 
   const staff = db.prepare('SELECT * FROM staff WHERE email = ? OR simu = ?').get(utambulisho, utambulisho);
@@ -37,9 +41,12 @@ router.post('/ingia', (req, res) => {
       req.session.flashError = 'Akaunti yako ya usimamizi imesimamishwa. Wasiliana na Mmiliki.';
       return res.redirect('/admin/ingia');
     }
-    req.session.staffId = staff.id;
-    req.session.admin2faVerified = false;
-    return res.redirect('/admin/2fa');
+    return req.session.regenerate(error => {
+      if (error) return next(error);
+      req.session.staffId = staff.id;
+      req.session.admin2faVerified = false;
+      res.redirect('/admin/2fa');
+    });
   }
 
   const failed = attempt || { count: 0, blockedUntil: 0 };
@@ -55,7 +62,7 @@ router.get('/2fa', (req, res) => {
   res.render('pages/admin/2fa', { title: 'Uthibitisho wa Pili' });
 });
 
-router.post('/2fa', (req, res) => {
+router.post('/2fa', (req, res, next) => {
   if (!req.session.adminId && !req.session.staffId) return res.redirect('/admin/ingia');
   const expected = process.env.ADMIN_2FA_CODE;
   if (!expected || req.body.code !== expected) {
@@ -63,10 +70,33 @@ router.post('/2fa', (req, res) => {
     return res.redirect('/admin/2fa');
   }
   req.session.admin2faVerified = true;
-  res.redirect('/admin');
+  req.session.save(error => {
+    if (error) return next(error);
+    res.redirect('/admin');
+  });
 });
 
 router.use(requireAdmin);
+
+router.get('/nyaraka/:aina/:id/:ainaFaili', (req, res) => {
+  const recordId = Number(req.params.id);
+  if (!Number.isInteger(recordId) || recordId < 1) return res.sendStatus(404);
+
+  let record;
+  let filename;
+  if (req.params.aina === 'seller' && req.params.ainaFaili === 'kitambulisho') {
+    record = db.prepare('SELECT kitambulisho FROM sellers WHERE id=?').get(recordId);
+    filename = record?.kitambulisho;
+  } else if (req.params.aina === 'driver' && ['kitambulisho', 'leseni'].includes(req.params.ainaFaili)) {
+    record = db.prepare('SELECT kitambulisho, leseni_file FROM drivers WHERE id=?').get(recordId);
+    filename = req.params.ainaFaili === 'leseni' ? record?.leseni_file : record?.kitambulisho;
+  }
+
+  if (!filename || path.basename(filename) !== filename) return res.sendStatus(404);
+  res.sendFile(path.join(upload.uploadDir, filename), error => {
+    if (error && !res.headersSent) res.sendStatus(error.statusCode === 404 ? 404 : 500);
+  });
+});
 
 router.use((req, res, next) => {
   if (req.method === 'POST') {
@@ -128,14 +158,28 @@ router.get('/wauzaji', (req, res) => {
 });
 
 router.post('/wauzaji/:id/idhinisha', (req, res) => {
-  db.prepare(`UPDATE sellers SET status='approved' WHERE id=?`).run(req.params.id);
+  const seller = db.prepare('SELECT kyc_status FROM sellers WHERE id=? AND imefutwa=0').get(req.params.id);
+  if (!seller || seller.kyc_status !== 'verified') {
+    req.session.flashError = 'Thibitisha KYC ya muuzaji kwanza kabla ya kuidhinisha duka.';
+    return res.redirect('/admin/wauzaji');
+  }
+  const result = db.prepare(`UPDATE sellers SET status='approved' WHERE id=? AND status='pending' AND imefutwa=0`).run(req.params.id);
+  if (!result.changes) {
+    req.session.flashError = 'Ombi hili halipo tena au tayari limeshughulikiwa.';
+    return res.redirect('/admin/wauzaji');
+  }
   req.session.flashSuccess = 'Duka limeidhinishwa.';
   res.redirect('/admin/wauzaji');
 });
 router.post('/wauzaji/:id/kyc', requireOwner, (req, res) => {
   const status = ['verified', 'rejected', 'pending'].includes(req.body.status) ? req.body.status : 'pending';
-  db.prepare(`UPDATE sellers SET kyc_status=?, kyc_reviewed_at=CURRENT_TIMESTAMP, kyc_reviewed_by=? WHERE id=?`)
-    .run(status, res.locals.currentAdmin.email, req.params.id);
+  const result = db.prepare(`UPDATE sellers SET kyc_status=?, kyc_reviewed_at=CURRENT_TIMESTAMP, kyc_reviewed_by=?,
+    status=CASE WHEN ?='rejected' AND status='approved' THEN 'suspended' ELSE status END WHERE id=?`)
+    .run(status, res.locals.currentAdmin.email, status, req.params.id);
+  if (!result.changes) {
+    req.session.flashError = 'Muuzaji huyu hapatikani.';
+    return res.redirect('/admin/wauzaji');
+  }
   req.session.flashSuccess = 'Hali ya KYC ya muuzaji imesasishwa.';
   res.redirect('/admin/wauzaji');
 });
@@ -155,7 +199,13 @@ router.post('/wauzaji/:id/rejesha', (req, res) => {
   res.redirect('/admin/wauzaji');
 });
 router.post('/wauzaji/:id/futa', (req, res) => {
+  const seller = db.prepare('SELECT picha_duka, kitambulisho FROM sellers WHERE id=?').get(req.params.id);
+  const productPhotos = db.prepare('SELECT picha FROM products WHERE seller_id=?').all(req.params.id)
+    .flatMap(product => {
+      try { return JSON.parse(product.picha || '[]'); } catch { return []; }
+    });
   const matokeo = deleteRecord('sellers', req.params.id, currentActor(res));
+  if (matokeo === 'hard' && seller) upload.removeFiles([seller.picha_duka, seller.kitambulisho, ...productPhotos]);
   req.session.flashSuccess = matokeo === 'soft'
     ? 'Duka limefichwa kwenye jukwaa (ufutaji kamili unahitaji Mmiliki).'
     : 'Duka limefutwa kabisa.';
@@ -178,14 +228,23 @@ router.post('/wasafirishaji/:id/idhinisha', (req, res) => {
     req.session.flashError = 'Thibitisha KYC ya mwasafirishaji kwanza kabla ya kumruhusu kubeba mizigo.';
     return res.redirect('/admin/wasafirishaji');
   }
-  db.prepare(`UPDATE drivers SET status='approved' WHERE id=?`).run(req.params.id);
+  const result = db.prepare(`UPDATE drivers SET status='approved' WHERE id=? AND status='pending' AND imefutwa=0`).run(req.params.id);
+  if (!result.changes) {
+    req.session.flashError = 'Ombi hili halipo tena au tayari limeshughulikiwa.';
+    return res.redirect('/admin/wasafirishaji');
+  }
   req.session.flashSuccess = 'Mwasafirishaji ameidhinishwa.';
   res.redirect('/admin/wasafirishaji');
 });
 router.post('/wasafirishaji/:id/kyc', requireOwner, (req, res) => {
   const status = ['verified', 'rejected', 'pending'].includes(req.body.status) ? req.body.status : 'pending';
-  db.prepare(`UPDATE drivers SET kyc_status=?, kyc_reviewed_at=CURRENT_TIMESTAMP, kyc_reviewed_by=? WHERE id=?`)
-    .run(status, res.locals.currentAdmin.email, req.params.id);
+  const result = db.prepare(`UPDATE drivers SET kyc_status=?, kyc_reviewed_at=CURRENT_TIMESTAMP, kyc_reviewed_by=?,
+    status=CASE WHEN ?='rejected' AND status='approved' THEN 'suspended' ELSE status END WHERE id=?`)
+    .run(status, res.locals.currentAdmin.email, status, req.params.id);
+  if (!result.changes) {
+    req.session.flashError = 'Mwasafirishaji huyu hapatikani.';
+    return res.redirect('/admin/wasafirishaji');
+  }
   req.session.flashSuccess = 'Hali ya KYC ya mwasafirishaji imesasishwa.';
   res.redirect('/admin/wasafirishaji');
 });
@@ -205,7 +264,9 @@ router.post('/wasafirishaji/:id/rejesha', (req, res) => {
   res.redirect('/admin/wasafirishaji');
 });
 router.post('/wasafirishaji/:id/futa', (req, res) => {
+  const driver = db.prepare('SELECT kitambulisho, leseni_file FROM drivers WHERE id=?').get(req.params.id);
   const matokeo = deleteRecord('drivers', req.params.id, currentActor(res));
+  if (matokeo === 'hard' && driver) upload.removeFiles([driver.kitambulisho, driver.leseni_file]);
   req.session.flashSuccess = matokeo === 'soft'
     ? 'Akaunti imefichwa kwenye jukwaa (ufutaji kamili unahitaji Mmiliki).'
     : 'Akaunti imefutwa kabisa.';
@@ -248,7 +309,16 @@ router.get('/malalamiko', (req, res) => {
 });
 router.post('/malalamiko/:id/hali', (req, res) => {
   const { status } = req.body;
-  db.prepare(`UPDATE complaints SET status=? WHERE id=?`).run(status, req.params.id);
+  const allowedStatuses = ['open', 'responded', 'resolved', 'escalated'];
+  if (!allowedStatuses.includes(status)) {
+    req.session.flashError = 'Hali ya lalamiko haikubaliki.';
+    return res.redirect('/admin/malalamiko');
+  }
+  const result = db.prepare(`UPDATE complaints SET status=? WHERE id=?`).run(status, req.params.id);
+  if (!result.changes) {
+    req.session.flashError = 'Lalamiko hili halipo.';
+    return res.redirect('/admin/malalamiko');
+  }
   req.session.flashSuccess = 'Hali ya lalamiko imesasishwa.';
   res.redirect('/admin/malalamiko');
 });
@@ -283,6 +353,16 @@ router.get('/usafirishaji/:id', (req, res) => {
   res.render('pages/admin/usafirishaji-onyesho', { title: 'Usafirishaji #' + item.id, item, ujumbe });
 });
 
+router.post('/usafirishaji/:id/payment/verify', requireOwner, (req, res) => {
+  const result = db.prepare(`UPDATE delivery_requests SET payment_status='held'
+    WHERE id=? AND payment_status='reported' AND gharama_imekubaliwa=1 AND escrow_amount>0`)
+    .run(req.params.id);
+  req.session.flashSuccess = result.changes
+    ? 'Payment reference imethibitishwa kwa ukaguzi wa Mmiliki.'
+    : 'Hakuna payment reference inayosubiri uhakiki kwenye oda hii.';
+  res.redirect('/admin/usafirishaji/' + req.params.id);
+});
+
 router.post('/usafirishaji/:id/futa', (req, res) => {
   const matokeo = deleteRecord('delivery_requests', req.params.id, currentActor(res));
   req.session.flashSuccess = matokeo === 'soft'
@@ -308,6 +388,10 @@ router.post('/migogoro/:id/resolve', requireOwner, (req, res) => {
   if (!dispute) return res.redirect('/admin/migogoro');
   const decision = ['refund', 'release', 'under_review', 'escalated'].includes(req.body.decision) ? req.body.decision : 'under_review';
   const delivery = db.prepare('SELECT * FROM delivery_requests WHERE id=?').get(dispute.delivery_id);
+  if (['refund', 'release'].includes(decision) && delivery.payment_status !== 'held') {
+    req.session.flashError = 'Refund au release inahitaji payment reference iliyohakikiwa na Mmiliki kwanza.';
+    return res.redirect('/admin/migogoro');
+  }
   if (decision === 'refund') {
     db.prepare(`UPDATE delivery_requests SET payment_status='refunded', escrow_refunded_at=CURRENT_TIMESTAMP WHERE id=?`).run(delivery.id);
   } else if (decision === 'release' && delivery.payment_status === 'held') {
@@ -332,19 +416,51 @@ router.get('/upgrade', requireOwner, (req, res) => {
   });
   res.render('pages/admin/upgrade', { title: 'Maombi ya Kuboresha', maombi: enriched, filter });
 });
-router.post('/upgrade/:id/idhinisha', requireOwner, (req, res) => {
-  const request = db.prepare('SELECT * FROM upgrade_requests WHERE id=?').get(req.params.id);
-  if (request) {
-    const table = request.account_type === 'seller' ? 'sellers' : 'drivers';
-    db.prepare(`UPDATE ${table} SET tier=? WHERE id=?`).run(request.kiwango_kilichoombwa, request.account_id);
-    db.prepare(`UPDATE upgrade_requests SET status='approved' WHERE id=?`).run(request.id);
-    req.session.flashSuccess = `Kiwango kimeboreshwa hadi ${request.kiwango_kilichoombwa}.`;
+router.post('/upgrade/:id/idhinisha', requireOwner, (req, res, next) => {
+  try {
+    db.exec('BEGIN IMMEDIATE');
+    const request = db.prepare(`SELECT * FROM upgrade_requests WHERE id=? AND status='pending'`).get(req.params.id);
+    if (!request) {
+      db.exec('ROLLBACK');
+      req.session.flashError = 'Ombi hili halipo au tayari limeshughulikiwa.';
+      return res.redirect('/admin/upgrade');
+    }
+    if (!['BRONZE', 'SILVER', 'GOLD'].includes(request.kiwango_kilichoombwa)) {
+      db.exec('ROLLBACK');
+      req.session.flashError = 'Ombi lina kiwango kisichotambulika; halijabadilishwa.';
+      return res.redirect('/admin/upgrade');
+    }
+    const table = request.account_type === 'seller' ? 'sellers' : request.account_type === 'driver' ? 'drivers' : null;
+    if (!table) {
+      db.exec('ROLLBACK');
+      req.session.flashError = 'Aina ya akaunti kwenye ombi si sahihi.';
+      return res.redirect('/admin/upgrade');
+    }
+    const account = db.prepare(`SELECT subscription_expires_at FROM ${table} WHERE id=?`).get(request.account_id);
+    if (!account) {
+      db.exec('ROLLBACK');
+      req.session.flashError = 'Akaunti ya ombi hili haipo tena.';
+      return res.redirect('/admin/upgrade');
+    }
+    const now = new Date();
+    const oldExpiry = account.subscription_expires_at ? new Date(account.subscription_expires_at) : now;
+    const start = Number.isNaN(oldExpiry.getTime()) || oldExpiry < now ? now : oldExpiry;
+    const expires = new Date(start.getTime() + 30 * 86400000);
+    db.prepare(`UPDATE ${table} SET tier=?, subscription_tier=?, subscription_started_at=?, subscription_expires_at=?${table === 'sellers' ? ', renewal_prompted=0' : ''} WHERE id=?`)
+      .run(request.kiwango_kilichoombwa, request.kiwango_kilichoombwa, now.toISOString(), expires.toISOString(), request.account_id);
+    if (table === 'sellers') db.prepare('UPDATE products SET online=1 WHERE seller_id=? AND imefutwa=0').run(request.account_id);
+    db.prepare(`UPDATE upgrade_requests SET status='approved' WHERE id=? AND status='pending'`).run(request.id);
+    db.exec('COMMIT');
+    req.session.flashSuccess = `Kiwango kimeidhinishwa kwa siku 30: ${request.kiwango_kilichoombwa}.`;
+    res.redirect('/admin/upgrade');
+  } catch (error) {
+    try { db.exec('ROLLBACK'); } catch { /* transaction may already be closed */ }
+    next(error);
   }
-  res.redirect('/admin/upgrade');
 });
 router.post('/upgrade/:id/kataa', requireOwner, (req, res) => {
-  db.prepare(`UPDATE upgrade_requests SET status='rejected' WHERE id=?`).run(req.params.id);
-  req.session.flashSuccess = 'Ombi la upgrade limekataliwa.';
+  const result = db.prepare(`UPDATE upgrade_requests SET status='rejected' WHERE id=? AND status='pending'`).run(req.params.id);
+  req.session.flashSuccess = result.changes ? 'Ombi la upgrade limekataliwa.' : 'Ombi hili halipo au tayari limeshughulikiwa.';
   res.redirect('/admin/upgrade');
 });
 
@@ -392,7 +508,8 @@ router.post('/matangazo/:id/futa', (req, res) => {
     req.session.flashError = 'Kuondoa Ad iliyolipiwa ni jambo la kifedha — Mmiliki pekee.';
     return res.redirect('/admin/matangazo');
   }
-  db.prepare(`DELETE FROM matangazo WHERE id=?`).run(req.params.id);
+  const result = db.prepare(`DELETE FROM matangazo WHERE id=?`).run(req.params.id);
+  if (result.changes && m?.picha) upload.removeFiles([m.picha]);
   res.redirect('/admin/matangazo');
 });
 

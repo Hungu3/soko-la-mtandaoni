@@ -115,7 +115,11 @@ function sokoInitMapDisplay(mapElId, lat, lng, labelText) {
     maxZoom: 19,
   }).addTo(map);
   const m = L.marker([lat, lng]).addTo(map);
-  if (labelText) m.bindPopup(labelText);
+  if (labelText) {
+    const popupContent = document.createElement('span');
+    popupContent.textContent = labelText;
+    m.bindPopup(popupContent);
+  }
 
   setTimeout(function () { map.invalidateSize(); }, 200);
 }

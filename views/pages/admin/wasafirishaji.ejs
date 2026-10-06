@@ -27,8 +27,12 @@
         <td><span class="badge badge-<%= d.tier.toLowerCase() %>"><%= d.tier %></span></td>
         <td><span class="badge badge-<%= d.status %>"><%= d.status %></span></td>
         <td class="row-actions">
-          <% if (d.kitambulisho) { %><a href="/uploads/<%= d.kitambulisho %>" target="_blank" class="btn btn-ghost btn-sm">Kitambulisho</a><% } %>
-          <% if (isOwner) { %><form action="/admin/wasafirishaji/<%= d.id %>/kyc" method="POST"><input type="hidden" name="status" value="verified"><button class="btn btn-accent btn-sm">Verify KYC</button></form><% } %>
+          <% if (d.kitambulisho) { %><a href="/portal-siri/nyaraka/driver/<%= d.id %>/kitambulisho" target="_blank" class="btn btn-ghost btn-sm" rel="noopener">Kitambulisho</a><% } %>
+          <% if (d.leseni_file) { %><a href="/portal-siri/nyaraka/driver/<%= d.id %>/leseni" target="_blank" class="btn btn-ghost btn-sm" rel="noopener">Leseni ya Udereva</a><% } %>
+          <% if (isOwner && d.kyc_status !== 'verified') { %>
+            <form action="/admin/wasafirishaji/<%= d.id %>/kyc" method="POST"><input type="hidden" name="status" value="verified"><button class="btn btn-accent btn-sm">Thibitisha KYC</button></form>
+            <form action="/admin/wasafirishaji/<%= d.id %>/kyc" method="POST" onsubmit="return confirm('Kataa KYC ya mwasafirishaji huyu?')"><input type="hidden" name="status" value="rejected"><button class="btn btn-danger btn-sm">Kataa KYC</button></form>
+          <% } %>
           <% if (d.status === 'pending') { %>
             <form action="/admin/wasafirishaji/<%= d.id %>/idhinisha" method="POST"><button class="btn btn-accent btn-sm">Idhinisha</button></form>
             <form action="/admin/wasafirishaji/<%= d.id %>/kataa" method="POST"><button class="btn btn-danger btn-sm">Kataa</button></form>

@@ -4,13 +4,20 @@ const bcrypt = require('bcryptjs');
 const { db } = require('./db');
 
 function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL || 'admin@soko.co.tz';
-  const password = process.env.ADMIN_PASSWORD || 'Soko@2026';
+  const production = ['production', 'test'].includes(process.env.NODE_ENV);
+  const existingAdmin = db.prepare('SELECT id FROM admins LIMIT 1').get();
+  if (production && existingAdmin) return;
+
+  const email = process.env.ADMIN_EMAIL || (production ? '' : 'admin@soko.co.tz');
+  const password = process.env.ADMIN_PASSWORD || (production ? '' : 'Soko@2026');
+  if (production && (!email || password.length < 12)) {
+    throw new Error('Set ADMIN_EMAIL and an ADMIN_PASSWORD of at least 12 characters before first production start.');
+  }
   const jina = 'Msimamizi Mkuu';
 
   const existing = db.prepare('SELECT id FROM admins WHERE email = ?').get(email);
   if (existing) {
-    console.log(`Admin tayari yupo: ${email}`);
+    console.log('Admin tayari yupo.');
     return;
   }
   const hash = bcrypt.hashSync(password, 10);
@@ -18,12 +25,12 @@ function seedAdmin() {
   console.log('======================================');
   console.log(' AKAUNTI YA ADMIN IMETENGENEZWA');
   console.log(` Barua pepe: ${email}`);
-  console.log(` Password:   ${password}`);
   console.log(' (Badilisha password hii baada ya kuingia mara ya kwanza!)');
   console.log('======================================');
 }
 
 function seedDemo() {
+  if (['production', 'test'].includes(process.env.NODE_ENV)) return;
   const count = db.prepare('SELECT COUNT(*) c FROM sellers').get().c;
   if (count > 0) return; // demo data tayari ipo au kuna data halisi
 

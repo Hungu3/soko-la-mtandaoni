@@ -193,6 +193,7 @@ function addColumn(table, column, definition) {
 
 // Barua pepe kwa wasafirishaji na wanunuzi (kwa ajili ya kuingia kwa email au namba)
 addColumn('drivers', 'email', 'TEXT');
+addColumn('drivers', 'leseni_file', 'TEXT');
 addColumn('buyers', 'email', 'TEXT');
 
 // Ufutaji "laini" (soft delete): wasimamizi (staff) hawafuti kabisa — Admin bado anaona
@@ -315,6 +316,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   details TEXT,
   ip_address TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS driver_declined_requests (
+  driver_id INTEGER NOT NULL REFERENCES drivers(id) ON DELETE CASCADE,
+  delivery_id INTEGER NOT NULL REFERENCES delivery_requests(id) ON DELETE CASCADE,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (driver_id, delivery_id)
 );
 `);
 

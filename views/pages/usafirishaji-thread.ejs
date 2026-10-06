@@ -35,16 +35,17 @@
       </div>
     </div>
     <div class="card" style="padding:16px; margin-top:18px;">
-      <strong>Escrow ya Malipo</strong>
-      <div class="hint" style="margin:6px 0 10px;">Hali: <%= item.payment_status || 'not_started' %>. Malipo yataachiliwa kwa muuzaji baada ya Delivery Code kuthibitishwa.</div>
+      <strong>Taarifa za Malipo</strong>
+      <div class="hint" style="margin:6px 0 10px;">Hali: <%= item.payment_status || 'not_started' %>. Reference hukaguliwa na Mmiliki; mfumo huu hauunganishi gateway ya malipo moja kwa moja.</div>
       <% if (item.escrow_amount) { %><div>Kiasi kinachoshikiliwa: <strong><%= fmtMoney(item.escrow_amount) %></strong></div><% } %>
-      <% if (miminiaina === 'mnunuzi' && item.gharama_imekubaliwa && !['held','released'].includes(item.payment_status)) { %>
+      <% if (miminiaina === 'mnunuzi' && item.gharama_imekubaliwa && item.payment_status === 'not_started') { %>
         <form action="/usafirishaji/<%= item.id %>/payment" method="POST" style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
           <input type="number" name="amount" min="1" value="<%= item.gharama_iliyopendekezwa || '' %>" placeholder="Kiasi cha TSH" required>
           <input name="payment_reference" placeholder="Payment reference" required>
-          <button class="btn btn-gold btn-sm">Weka Pending Payment</button>
+          <button class="btn btn-gold btn-sm">Wasilisha Payment Reference</button>
         </form>
       <% } %>
+      <% if (item.payment_status === 'reported') { %><p class="hint">Reference: <strong><%= item.payment_reference %></strong> &middot; Inasubiri uhakiki wa Mmiliki.</p><% } %>
     </div>
     <div class="card" style="padding:16px; margin-top:18px;">
       <strong>Uthibitisho wa Usafirishaji</strong>

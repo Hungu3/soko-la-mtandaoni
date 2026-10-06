@@ -36,7 +36,8 @@ router.get('/maombi', (req, res) => {
       FROM delivery_requests dr LEFT JOIN products p ON p.id = dr.product_id
       LEFT JOIN sellers s ON s.id = dr.seller_id
       WHERE dr.aina IN ('public','protected') AND dr.status = 'inasubiri' AND dr.driver_id IS NULL AND dr.imefutwa = 0
-      ORDER BY dr.created_at ASC LIMIT 20`).all();
+        AND NOT EXISTS (SELECT 1 FROM driver_declined_requests x WHERE x.driver_id=? AND x.delivery_id=dr.id)
+      ORDER BY dr.created_at ASC LIMIT 20`).all(d.id);
   }
 
   res.render('pages/driver/maombi', { title: 'Maombi ya Usafirishaji', maombi, kikomoKimefikiwa, limits, ordersMwezi });
@@ -54,45 +55,74 @@ router.post('/maombi/:id/kubali', (req, res) => {
     return res.redirect('/safari-yangu/maombi');
   }
 
-  const request = db.prepare(`SELECT * FROM delivery_requests WHERE id = ? AND status = 'inasubiri' AND driver_id IS NULL AND imefutwa = 0`).get(req.params.id);
-  if (!request) {
+  const claim = db.prepare(`UPDATE delivery_requests
+    SET driver_id=?, status='imekubaliwa'
+    WHERE id=? AND status='inasubiri' AND driver_id IS NULL AND imefutwa=0
+      AND (SELECT COUNT(*) FROM delivery_requests active
+        WHERE active.driver_id=? AND active.status IN ('imekubaliwa','inasafirishwa','imewasili')
+          AND active.created_at >= date('now','start of month')) < ?`)
+    .run(d.id, req.params.id, d.id, limits.orders);
+  if (!claim.changes) {
     req.session.flashError = 'Ombi hili tayari limechukuliwa na mwasafirishaji mwingine.';
     return res.redirect('/safari-yangu/maombi');
   }
-  db.prepare(`UPDATE delivery_requests SET driver_id = ?, status = 'imekubaliwa' WHERE id = ?`).run(d.id, request.id);
   db.prepare(`INSERT INTO delivery_notes (delivery_id, mtumaji_aina, mtumaji_jina, ujumbe)
               VALUES (?, 'msafirishaji', ?, 'Nimekubali kusafirisha order hii. Tuwasiliane kuhusu bei ya usafirishaji.')`)
-    .run(request.id, d.jina);
+    .run(req.params.id, d.jina);
   req.session.flashSuccess = 'Umekubali order! Nenda kwenye ukurasa wa mazungumzo kukubaliana bei ya usafirishaji na muuzaji/mnunuzi.';
-  res.redirect('/usafirishaji/' + request.id);
+  res.redirect('/usafirishaji/' + req.params.id);
 });
 
 router.post('/safari/:id/thibitisha-kuchukua', (req, res) => {
   const d = res.locals.currentDriver;
-  const item = db.prepare(`SELECT * FROM delivery_requests WHERE id=? AND driver_id=?`).get(req.params.id, d.id);
-  if (!item || item.pickup_code !== String(req.body.code || '').trim()) {
+  const code = typeof req.body.code === 'string' ? req.body.code.trim() : '';
+  if (!/^\d{6}$/.test(code)) {
     req.session.flashError = 'Code ya kuchukua si sahihi.';
     return res.redirect('/usafirishaji/' + req.params.id);
   }
-  db.prepare(`UPDATE delivery_requests SET verification_status='picked_up', pickup_verified_at=CURRENT_TIMESTAMP, status='inasafirishwa' WHERE id=?`).run(item.id);
+  const result = db.prepare(`UPDATE delivery_requests
+    SET verification_status='picked_up', pickup_verified_at=CURRENT_TIMESTAMP, status='inasafirishwa'
+    WHERE id=? AND driver_id=? AND status='imekubaliwa' AND verification_status='pending_pickup' AND pickup_code=?`)
+    .run(req.params.id, d.id, code);
+  if (!result.changes) {
+    req.session.flashError = 'Code si sahihi au ombi tayari limebadilika hatua.';
+    return res.redirect('/usafirishaji/' + req.params.id);
+  }
   req.session.flashSuccess = 'Pickup imethibitishwa. Endelea na usafirishaji.';
-  res.redirect('/usafirishaji/' + item.id);
+  res.redirect('/usafirishaji/' + req.params.id);
 });
 
 router.post('/safari/:id/thibitisha-kufikisha', (req, res) => {
   const d = res.locals.currentDriver;
-  const item = db.prepare(`SELECT * FROM delivery_requests WHERE id=? AND driver_id=?`).get(req.params.id, d.id);
-  if (!item || item.delivery_code !== String(req.body.code || '').trim()) {
+  const code = typeof req.body.code === 'string' ? req.body.code.trim() : '';
+  if (!/^\d{6}$/.test(code)) {
     req.session.flashError = 'Code ya kukabidhi si sahihi.';
     return res.redirect('/usafirishaji/' + req.params.id);
   }
-  db.prepare(`UPDATE delivery_requests SET verification_status='delivered', delivery_verified_at=CURRENT_TIMESTAMP, status='imewasili', payment_status=CASE WHEN payment_status='held' THEN 'released' ELSE payment_status END, escrow_released_at=CASE WHEN payment_status='held' THEN CURRENT_TIMESTAMP ELSE escrow_released_at END WHERE id=?`).run(item.id);
+  const result = db.prepare(`UPDATE delivery_requests SET verification_status='delivered', delivery_verified_at=CURRENT_TIMESTAMP,
+    status='imewasili', payment_status=CASE WHEN payment_status='held' THEN 'released' ELSE payment_status END,
+    escrow_released_at=CASE WHEN payment_status='held' THEN CURRENT_TIMESTAMP ELSE escrow_released_at END
+    WHERE id=? AND driver_id=? AND status='inasafirishwa' AND verification_status='picked_up' AND delivery_code=?`)
+    .run(req.params.id, d.id, code);
+  if (!result.changes) {
+    req.session.flashError = 'Code si sahihi au ombi tayari limebadilika hatua.';
+    return res.redirect('/usafirishaji/' + req.params.id);
+  }
   req.session.flashSuccess = 'Delivery imethibitishwa kwa code ya mnunuzi.';
-  res.redirect('/usafirishaji/' + item.id);
+  res.redirect('/usafirishaji/' + req.params.id);
 });
 
 router.post('/maombi/:id/kataa', (req, res) => {
-  req.session.flashSuccess = 'Umekataa ombi hili.';
+  const d = res.locals.currentDriver;
+  const request = db.prepare(`SELECT id FROM delivery_requests
+    WHERE id=? AND status='inasubiri' AND driver_id IS NULL AND imefutwa=0`).get(req.params.id);
+  if (!request) {
+    req.session.flashError = 'Ombi hili halipatikani tena.';
+    return res.redirect('/safari-yangu/maombi');
+  }
+  db.prepare('INSERT OR IGNORE INTO driver_declined_requests (driver_id, delivery_id) VALUES (?,?)')
+    .run(d.id, request.id);
+  req.session.flashSuccess = 'Ombi limeondolewa kwenye orodha yako.';
   res.redirect('/safari-yangu/maombi');
 });
 
@@ -123,17 +153,19 @@ router.post('/upgrade', (req, res) => {
     req.session.flashError = 'Chagua kiwango sahihi.';
     return res.redirect('/safari-yangu/upgrade');
   }
-  if (!njia_malipo || !payment_ref || payment_ref.trim().length < 4) {
+  if (!['M-Pesa', 'T-Pesa', 'Airtel Money', 'Benki'].includes(njia_malipo)
+      || typeof payment_ref !== 'string' || payment_ref.trim().length < 4 || payment_ref.trim().length > 120) {
     req.session.flashError = 'Chagua njia ya malipo na weka namba ya muamala kabla ya kuendelea.';
     return res.redirect('/safari-yangu/upgrade');
   }
-  const started = new Date();
-  const expires = new Date(started.getTime() + 30 * 86400000);
-  db.prepare(`UPDATE drivers SET tier=?, subscription_tier=?, subscription_started_at=?, subscription_expires_at=? WHERE id=?`)
-    .run(kiwango, kiwango, started.toISOString(), expires.toISOString(), d.id);
+  const pending = db.prepare(`SELECT id FROM upgrade_requests WHERE account_type='driver' AND account_id=? AND status='pending'`).get(d.id);
+  if (pending) {
+    req.session.flashError = 'Tayari una ombi la upgrade linalosubiri kuhakikiwa.';
+    return res.redirect('/safari-yangu/upgrade');
+  }
   db.prepare(`INSERT INTO upgrade_requests (account_type, account_id, kiwango_kilichoombwa, njia_malipo, payment_ref, amount, status)
-              VALUES ('driver', ?, ?, ?, ?, ?, 'approved')`).run(d.id, kiwango, njia_malipo, payment_ref.trim(), pricing[kiwango]);
-  req.session.flashSuccess = `Malipo yamepokelewa. Huduma yako imeboreshwa hadi ${kiwango} kwa siku 30.`;
+              VALUES ('driver', ?, ?, ?, ?, ?, 'pending')`).run(d.id, kiwango, njia_malipo, payment_ref.trim(), pricing[kiwango]);
+  req.session.flashSuccess = 'Ombi limepokelewa. Kiwango kitabadilika baada ya Mmiliki kuhakiki malipo.';
   res.redirect('/safari-yangu/upgrade');
 });
 

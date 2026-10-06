@@ -35,6 +35,8 @@
 <div class="info-row"><div class="k">Aina ya Usafirishaji</div><div class="v" style="text-transform:capitalize;"><%= item.aina %></div></div>
 <div class="info-row"><div class="k">Kutoka &rarr; Kwenda</div><div class="v"><%= item.eneo_kuchukua || '—' %> &rarr; <%= item.eneo_kupeleka || '—' %></div></div>
 <div class="info-row"><div class="k">Bei Iliyopendekezwa</div><div class="v"><%= item.gharama_iliyopendekezwa ? fmtMoney(item.gharama_iliyopendekezwa) : '—' %> <% if (item.gharama_imekubaliwa) { %><span class="badge badge-approved">Imekubaliwa</span><% } %></div></div>
+<div class="info-row"><div class="k">Payment</div><div class="v"><%= item.payment_status || 'not_started' %> <% if (item.payment_reference) { %>&middot; <%= item.payment_reference %><% } %></div></div>
+<% if (isOwner && item.payment_status === 'reported') { %><form action="/admin/usafirishaji/<%= item.id %>/payment/verify" method="POST" style="margin:12px 0;"><button class="btn btn-accent btn-sm">Thibitisha Reference Iliyolipwa</button></form><% } %>
 
 <% if (item.kupeleka_lat && item.kupeleka_lng) { %>
 <div style="margin: 18px 0;">

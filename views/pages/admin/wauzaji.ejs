@@ -26,8 +26,11 @@
         <td><span class="badge badge-<%= s.tier.toLowerCase() %>"><%= s.tier %></span></td>
         <td><span class="badge badge-<%= s.status %>"><%= s.status %></span></td>
         <td class="row-actions">
-          <% if (s.kitambulisho) { %><a href="/uploads/<%= s.kitambulisho %>" target="_blank" class="btn btn-ghost btn-sm">Kitambulisho</a><% } %>
-          <% if (isOwner) { %><form action="/admin/wauzaji/<%= s.id %>/kyc" method="POST"><input type="hidden" name="status" value="verified"><button class="btn btn-accent btn-sm">Verify KYC</button></form><% } %>
+          <% if (s.kitambulisho) { %><a href="/portal-siri/nyaraka/seller/<%= s.id %>/kitambulisho" target="_blank" class="btn btn-ghost btn-sm" rel="noopener">Kitambulisho</a><% } %>
+          <% if (isOwner && s.kyc_status !== 'verified') { %>
+            <form action="/admin/wauzaji/<%= s.id %>/kyc" method="POST"><input type="hidden" name="status" value="verified"><button class="btn btn-accent btn-sm">Thibitisha KYC</button></form>
+            <form action="/admin/wauzaji/<%= s.id %>/kyc" method="POST" onsubmit="return confirm('Kataa KYC ya muuzaji huyu?')"><input type="hidden" name="status" value="rejected"><button class="btn btn-danger btn-sm">Kataa KYC</button></form>
+          <% } %>
           <% if (s.status === 'pending') { %>
             <form action="/admin/wauzaji/<%= s.id %>/idhinisha" method="POST"><button class="btn btn-accent btn-sm">Idhinisha</button></form>
             <form action="/admin/wauzaji/<%= s.id %>/kataa" method="POST"><button class="btn btn-danger btn-sm">Kataa</button></form>

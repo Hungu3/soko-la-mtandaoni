@@ -97,12 +97,13 @@ router.post('/jisajili/mwasafirishaji', upload.fields([{ name: 'kitambulisho', m
   }
 
   const kitambulisho = req.files.kitambulisho[0].filename;
+  const leseniFaili = req.files.leseni_faili[0].filename;
   const hash = bcrypt.hashSync(password, 10);
 
   const info = db.prepare(`INSERT INTO drivers
-    (jina, simu, email, aina_gari, namba_usajili, leseni, eneo_huduma, kitambulisho, password_hash, status, tier)
-    VALUES (?,?,?,?,?,?,?,?,?,'pending','FREE')`)
-    .run(jina.trim(), simu.trim(), email.trim(), aina_gari, namba_usajili.trim(), leseni.trim(), eneo_huduma.trim(), kitambulisho, hash);
+    (jina, simu, email, aina_gari, namba_usajili, leseni, eneo_huduma, kitambulisho, leseni_file, password_hash, status, tier)
+    VALUES (?,?,?,?,?,?,?,?,?,?,'pending','FREE')`)
+    .run(jina.trim(), simu.trim(), email.trim(), aina_gari, namba_usajili.trim(), leseni.trim(), eneo_huduma.trim(), kitambulisho, leseniFaili, hash);
 
   req.session.driverId = info.lastInsertRowid;
   req.session.flashSuccess = 'Ombi lako la usajili limetumwa! Litakaguliwa na Admin kabla ya kuidhinishwa.';
@@ -142,14 +143,18 @@ router.get('/ingia', (req, res) => {
   res.render('pages/ingia', { title: 'Ingia', aina });
 });
 
-router.post('/ingia', (req, res) => {
+router.post('/ingia', (req, res, next) => {
   const { aina, utambulisho, password } = req.body;
   const kitafutwa = (utambulisho || '').trim();
 
   let table, sessionKey, redirectOk, redirectFail;
   if (aina === 'muuzaji') { table = 'sellers'; sessionKey = 'sellerId'; redirectOk = '/duka-langu'; redirectFail = '/ingia?aina=muuzaji'; }
   else if (aina === 'mwasafirishaji') { table = 'drivers'; sessionKey = 'driverId'; redirectOk = '/safari-yangu'; redirectFail = '/ingia?aina=mwasafirishaji'; }
-  else { table = 'buyers'; sessionKey = 'buyerId'; redirectOk = '/'; redirectFail = '/ingia?aina=mnunuzi'; }
+  else if (aina === 'mnunuzi') { table = 'buyers'; sessionKey = 'buyerId'; redirectOk = '/'; redirectFail = '/ingia?aina=mnunuzi'; }
+  else {
+    req.session.flashError = 'Chagua aina sahihi ya akaunti.';
+    return res.redirect('/ingia?aina=mnunuzi');
+  }
 
   const user = db.prepare(`SELECT * FROM ${table} WHERE simu = ? OR email = ?`).get(kitafutwa, kitafutwa);
   if (!user || !user.password_hash || !bcrypt.compareSync(password || '', user.password_hash)) {
@@ -160,13 +165,16 @@ router.post('/ingia', (req, res) => {
     req.session.flashError = 'Akaunti hii imesimamishwa. Wasiliana na Admin kwa maelezo zaidi.';
     return res.redirect(redirectFail);
   }
-  req.session[sessionKey] = user.id;
-  if (aina === 'mnunuzi' && req.session.rudiBaada) {
-    const rudi = req.session.rudiBaada;
-    delete req.session.rudiBaada;
-    return res.redirect(rudi);
-  }
-  res.redirect(redirectOk);
+  const returnTo = req.session.rudiBaada;
+  const safeReturnTo = typeof returnTo === 'string'
+    && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')
+    ? returnTo : null;
+  req.session.regenerate(error => {
+    if (error) return next(error);
+    req.session[sessionKey] = user.id;
+    if (aina === 'mnunuzi' && safeReturnTo) return res.redirect(safeReturnTo);
+    res.redirect(redirectOk);
+  });
 });
 
 router.post('/toka', (req, res) => {

@@ -14,7 +14,7 @@
 <% } else { %>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Tarehe</th><th>Akaunti</th><th>Aina</th><th>Kiwango</th><th>Hali</th></tr></thead>
+    <thead><tr><th>Tarehe</th><th>Akaunti</th><th>Aina</th><th>Kiwango</th><th>Njia/Reference</th><th>Kiasi</th><th>Hali</th><th>Vitendo</th></tr></thead>
     <tbody>
       <% maombi.forEach(m => { %>
       <tr>
@@ -22,7 +22,15 @@
         <td class="strong"><%= m.account ? (m.account.jina || m.account.jina_duka) : 'Haipo tena' %><br><span style="font-size:12px; color:var(--text-faint); font-weight:400;"><%= m.account ? m.account.simu : '' %></span></td>
         <td style="text-transform:capitalize;"><%= m.account_type === 'seller' ? 'Muuzaji' : 'Mwasafirishaji' %></td>
         <td><span class="badge badge-<%= m.kiwango_kilichoombwa.toLowerCase() %>"><%= m.kiwango_kilichoombwa %></span></td>
+        <td><%= m.njia_malipo || '—' %><br><span style="font-size:12px;color:var(--text-faint);"><%= m.payment_ref || '—' %></span></td>
+        <td><%= m.amount == null ? '—' : fmtMoney(m.amount) %></td>
         <td><span class="badge badge-<%= m.status %>"><%= m.status %></span></td>
+        <td class="row-actions">
+          <% if (m.status === 'pending') { %>
+            <form action="/admin/upgrade/<%= m.id %>/idhinisha" method="POST" onsubmit="return confirm('Thibitisha kuwa malipo haya yameingia?')"><button class="btn btn-accent btn-sm">Idhinisha Malipo</button></form>
+            <form action="/admin/upgrade/<%= m.id %>/kataa" method="POST" onsubmit="return confirm('Kataa ombi hili la upgrade?')"><button class="btn btn-danger btn-sm">Kataa</button></form>
+          <% } else { %>—<% } %>
+        </td>
       </tr>
       <% }) %>
     </tbody>

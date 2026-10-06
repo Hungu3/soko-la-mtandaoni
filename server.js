@@ -21,6 +21,12 @@ const rateLimit = require('./middleware/rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.locals.currentYear = new Date().getFullYear();
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionSecret = process.env.SESSION_SECRET;
+if (isProduction && (!sessionSecret || sessionSecret.length < 32)) {
+  throw new Error('Production requires SESSION_SECRET with at least 32 characters.');
+}
+if (isProduction) app.set('trust proxy', 1);
 
 const DATA_DIR = path.resolve(process.env.SOKO_DATA_DIR || path.join(__dirname, 'data'));
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -49,6 +55,12 @@ app.locals.firstPhoto = (jsonStr) => {
 app.locals.allPhotos = (jsonStr) => {
   try { return JSON.parse(jsonStr || '[]'); } catch { return []; }
 };
+app.locals.safeJson = (value) => JSON.stringify(value)
+  .replace(/</g, '\\u003c')
+  .replace(/>/g, '\\u003e')
+  .replace(/&/g, '\\u0026')
+  .replace(/\u2028/g, '\\u2028')
+  .replace(/\u2029/g, '\\u2029');
 app.locals.timeAgo = (dateStr) => {
   const diff = (Date.now() - new Date(dateStr + 'Z').getTime()) / 1000;
   if (diff < 60) return 'sasa hivi';
@@ -65,18 +77,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(rateLimit({ max: 100 }));
 app.use(methodOverride('_method'));
-app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/public', (req, res, next) => {
+  if (req.path === '/uploads' || req.path.startsWith('/uploads/')) return res.sendStatus(404);
+  next();
+}, express.static(path.join(__dirname, 'public')));
 
 app.use(session({
   store: new FileStore({ path: path.join(DATA_DIR, 'sessions'), logFn: function(){} }),
-  secret: process.env.SESSION_SECRET || 'soko-la-mtandaoni-siri-badilisha-hii',
+  secret: sessionSecret || 'local-development-session-secret-only',
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 30, // siku 30
     httpOnly: true,
     sameSite: 'lax',
+    secure: isProduction,
   },
 }));
 
@@ -115,6 +130,36 @@ app.use((req, res, next) => {
   delete req.session.flashSuccess;
   delete req.session.flashError;
   next();
+});
+
+app.get('/uploads/:filename', (req, res, next) => {
+  const filename = path.basename(req.params.filename);
+  const privateDocument = db.prepare(`SELECT 1 FROM sellers WHERE kitambulisho=?
+    UNION ALL SELECT 1 FROM drivers WHERE kitambulisho=? OR leseni_file=? LIMIT 1`)
+    .get(filename, filename, filename);
+  const privileged = (res.locals.isOwner || res.locals.isStaff) && req.session.admin2faVerified;
+  if (privateDocument && !privileged) return res.sendStatus(404);
+
+  const publicStoreImage = db.prepare(`SELECT 1 FROM sellers
+    WHERE picha_duka=? AND status='approved' AND imefutwa=0 LIMIT 1`).get(filename);
+  const publicAdImage = db.prepare(`SELECT 1 FROM matangazo
+    WHERE picha=? AND active=1 AND status='approved' AND imefutwa=0 LIMIT 1`).get(filename);
+  const productImages = db.prepare(`SELECT p.picha FROM products p JOIN sellers s ON s.id=p.seller_id
+    WHERE p.imefutwa=0 AND p.hali='ipo' AND p.idadi>0 AND COALESCE(p.online,1)=1 AND s.status='approved' AND s.imefutwa=0`).all();
+  const publicProductImage = productImages.some(product => app.locals.allPhotos(product.picha).includes(filename));
+  const adminProductImage = privileged
+    && db.prepare('SELECT picha FROM products').all().some(product => app.locals.allPhotos(product.picha).includes(filename));
+
+  const adminReference = privileged && Boolean(db.prepare(`
+    SELECT 1 FROM sellers WHERE picha_duka=? OR kitambulisho=?
+    UNION ALL SELECT 1 FROM drivers WHERE kitambulisho=? OR leseni_file=?
+    UNION ALL SELECT 1 FROM matangazo WHERE picha=?
+    LIMIT 1`).get(filename, filename, filename, filename, filename));
+  if (!publicStoreImage && !publicAdImage && !publicProductImage && !adminProductImage && !adminReference) return res.sendStatus(404);
+
+  res.sendFile(path.join(UPLOAD_DIR, filename), error => {
+    if (error && !res.headersSent) res.sendStatus(error.statusCode === 404 ? 404 : 500);
+  });
 });
 
 // ---------- Routes ----------

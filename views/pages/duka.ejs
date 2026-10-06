@@ -76,7 +76,7 @@
 <% if (duka.latitude && duka.longitude) { %>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/public/js/map.js"></script>
-<script>sokoInitMapDisplay('rampaDuka', <%= duka.latitude %>, <%= duka.longitude %>, <%- JSON.stringify(duka.jina_duka) %>);</script>
+<script>sokoInitMapDisplay('rampaDuka', <%= duka.latitude %>, <%= duka.longitude %>, <%- safeJson(duka.jina_duka) %>);</script>
 <% } %>
 
 <%- include('../partials/bottom') %>
